@@ -1,0 +1,26 @@
+source: ~/projects/agents/plugins
+target: gemini-cli
+exclude:
+  - "*.ko.md"
+resources:
+  commands:
+    - agentic-documentation:brainstorm
+    - agentic-documentation:review-docs
+    - agentic-documentation:review-plan
+    - agentic-workflows:review-code
+  skills:
+    - dev-essentials:general-coding-standards
+    - dev-essentials:testing-guidelines
+
+    - agentic-documentation:brainstorming
+    - agentic-documentation:spec-guidelines
+    - agentic-documentation:spec-documentation
+    - agentic-documentation:track-documentation
+    - agentic-documentation:roadmap-documentation
+
+    - everything-claude-code:python-patterns
+    - everything-claude-code:python-testing
+
+    - techstack-guidelines:python-style-guide
+    - techstack-guidelines:pyside-patterns
+    - techstack-guidelines:pyinstaller-guidelines

@@ -1,0 +1,11 @@
+{
+  "tools": {
+    "sandbox": "sandbox-exec"
+  },
+  "context": {
+    "fileFiltering": {
+      "respectGitIgnore": false,
+      "respectGeminiIgnore": true
+    }
+  }
+}
