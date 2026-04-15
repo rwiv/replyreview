@@ -66,11 +66,17 @@ sequenceDiagram
     CardWidget->>CardWidget: "생성 중..." 버튼 활성화 복구
 ```
 
-### 4.2. LangChain 프롬프트 엔지니어링
+### 4.2. AI 클라이언트 추상화 및 테스트 전략
 
-`ChatPromptTemplate`을 활용하여 시스템 프롬프트와 사용자 리뷰 데이터를 결합합니다.
+외부 AI 서비스(OpenAI)와의 의존성을 분리하고 테스트 용이성을 확보하기 위해, **Abstract Base Class(ABC)**를 기반으로 클라이언트를 추상화합니다.
 
-- **System Message**: "당신은 친절하고 전문적인 쇼핑몰 고객센터 직원입니다. 고객의 리뷰에 공감하며 예의 바르게 답변해야 합니다."
+-   **Interface (`AIClient` ABC)**: 답글 생성을 위한 추상 메서드 `generate_reply`를 정의합니다.
+-   **Implementation (`OpenAIClient`)**: 실제 LangChain과 OpenAI API를 사용하여 답글을 생성합니다.
+-   **Fake Client (`FakeAIClient`)**: 테스트 코드에서 사용하며, 네트워크 호출 없이 미리 정의된 가짜(Fake) 응답을 즉시 반환합니다.
+
+### 4.3. LangChain 프롬프트 엔지니어링
+
+- **System Message**: "당신은 친절하고 전문적인 쇼핑몰 고객센터 직원입니다. 고객의 리뷰에 공감하며 예의 바르게 답변해야 합니다. **모든 답변은 반드시 한국어로만 작성하십시오.**"
 - **Human Message Template**: 
   ```text
   고객명: {customer_name}
@@ -108,3 +114,4 @@ clipboard.setText(generated_reply_text)
 - 앱 외주 결과물(포트폴리오) 성격에 맞게, 코드를 모르는 사용자도 바로 실행할 수 있도록 단일 디렉토리 또는 단일 실행 파일 형태로 빌드합니다.
 - 콘솔 윈도우가 뜨지 않도록 `--windowed` 또는 `--noconsole` 옵션을 필수로 적용합니다.
 - `pandas` 등 용량이 큰 라이브러리가 포함되므로 빌드 최적화가 필요할 수 있습니다. (불필요한 모듈 제외)
+
