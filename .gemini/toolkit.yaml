@@ -7,6 +7,9 @@ resources:
     - agentic-documentation:brainstorm
     - agentic-documentation:review-docs
     - agentic-documentation:review-plan
+    - agentic-documentation:track-spec
+    - agentic-documentation:track-tasks
+    - agentic-documentation:track-start
     - agentic-workflows:review-code
   skills:
     - dev-essentials:general-coding-standards
