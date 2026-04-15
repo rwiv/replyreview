@@ -1,0 +1,12 @@
+source: ~/projects/agents/plugins
+target: claude-code
+exclude:
+  - "*.ko.md"
+resources:
+  skills:
+    - everything-claude-code:python-patterns
+    - everything-claude-code:python-testing
+
+    - techstack-guidelines:python-style-guide
+    - techstack-guidelines:pyside-patterns
+    - techstack-guidelines:pyinstaller-guidelines
