@@ -1,8 +1,11 @@
-from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import QLabel, QMainWindow, QPushButton, QToolBar
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QPushButton, QToolBar
 
 from replyreview.config.config_manager import ConfigManager
+from replyreview.gui.file_load_view import FileLoadView
+from replyreview.gui.review_list_view import ReviewListView
 from replyreview.gui.settings_dialog import SettingsDialog
+from replyreview.parser.review_parser import ParserError, ReviewParser
 
 
 class MainWindow(QMainWindow):
@@ -18,6 +21,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self._config_manager = ConfigManager()
+        self._parser = ReviewParser()
         self._setup_window()
         self._setup_toolbar()
         self._setup_central_widget()
@@ -35,10 +39,23 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(settings_button)
 
     def _setup_central_widget(self) -> None:
-        # Placeholder: Task 1.2에서 리뷰 카드 리스트 뷰로 교체 예정
-        placeholder = QLabel("리뷰 데이터 파일을 불러와 주세요.")
-        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setCentralWidget(placeholder)
+        file_load_view = FileLoadView()
+        file_load_view.file_selected.connect(self._on_file_selected)
+        self.setCentralWidget(file_load_view)
+
+    @Slot(str)
+    def _on_file_selected(self, file_path: str) -> None:
+        """
+        파일 선택 후 파싱을 시도하고 성공 시 ReviewListView로 화면을 전환한다.
+        ParserError 발생 시 QMessageBox로 오류 내용을 안내한다.
+        """
+        try:
+            reviews = self._parser.parse(file_path)
+        except ParserError as e:
+            QMessageBox.warning(self, "파일 오류", str(e))
+            return
+
+        self.setCentralWidget(ReviewListView(reviews))
 
     @Slot()
     def _open_settings_dialog(self) -> None:

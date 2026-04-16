@@ -29,7 +29,7 @@ class ConfigManager:
         try:
             with open(self._config_path, encoding="utf-8") as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except FileNotFoundError, json.JSONDecodeError:
             return DEFAULT_CONFIG.copy()
 
     def save(self, data: dict[str, str]) -> None:

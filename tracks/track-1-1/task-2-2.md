@@ -228,9 +228,9 @@ uv run pytest tests/gui/
 
 ## Success Criteria
 
-- [ ] `uv run pytest tests/gui/` 테스트가 모두 통과한다.
-- [ ] `uv run pyright` 타입 체크 오류가 없다.
-- [ ] 메인 윈도우에서 '설정' 버튼 클릭 시 설정 다이얼로그가 모달로 열린다.
-- [ ] 설정 다이얼로그에서 API 키 입력 후 저장 시 `config.json`에 기록되고, 앱 재실행 시 동일한 키가 다이얼로그에 자동 로드된다.
-- [ ] `replyreview/gui/README.md`가 모듈 역할, 핵심 컴포넌트, 시그널/슬롯 구조, 테스트 전략을 포함하여 작성되었다.
+- [x] `uv run pytest tests/gui/` 테스트가 모두 통과한다.
+- [x] `uv run pyright` 타입 체크 오류가 없다.
+- [x] 메인 윈도우에서 '설정' 버튼 클릭 시 설정 다이얼로그가 모달로 열린다.
+- [x] 설정 다이얼로그에서 API 키 입력 후 저장 시 `config.json`에 기록되고, 앱 재실행 시 동일한 키가 다이얼로그에 자동 로드된다.
+- [x] `replyreview/gui/README.md`가 모듈 역할, 핵심 컴포넌트, 시그널/슬롯 구조, 테스트 전략을 포함하여 작성되었다.
 

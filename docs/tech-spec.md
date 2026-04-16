@@ -35,13 +35,19 @@
 ```python
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(frozen=True)
 class ReviewData:
     product_name: str
     customer_name: str
     rating: int      # 1~5 정수형 권장
     content: str
 ```
+
+#### 구현
+
+- **`replyreview/models.py`**: `ReviewData` frozen dataclass 정의. GUI와 파서 계층 모두에서 참조하는 공유 도메인 모델입니다.
+- **`replyreview/parser/review_parser.py`**: `ReviewParser` 클래스와 `ParserError` 예외. 파일을 읽어 `ReviewData` 리스트로 변환합니다.
+- **`replyreview/parser/README.md`**: parser 모듈 명세 및 사용 가이드
 
 ## 4. 핵심 모듈 구현 전략
 

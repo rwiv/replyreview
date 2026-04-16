@@ -118,6 +118,6 @@ uv run python -m replyreview
 
 ## Success Criteria
 
-- [ ] `uv run python -m replyreview` 실행 시 메인 윈도우가 정상적으로 표시된다.
-- [ ] `uv run pyright` 타입 체크 오류가 없다.
+- [x] `uv run python -m replyreview` 실행 시 메인 윈도우가 정상적으로 표시된다.
+- [x] `uv run pyright` 타입 체크 오류가 없다.
 

@@ -48,7 +48,12 @@ AI 에이전트 및 개발자가 로컬 환경에서 자주 사용하는 필수 
 - [features.md](./features.md): 사용자 스토리, 파일 선택, 카드 리스트 UI, API 키 설정 관리, 답글 복사 등 앱의 모든 동작 및 UI/UX 요구사항 정의를 포함한 **기능 명세서**
 - [tech-spec.md](./tech-spec.md): 시스템 아키텍처, 데이터 파싱 모델, LangChain 연동 전략, 설정 파일 구조 및 빌드/배포 스펙 정의를 포함한 **기술 명세서**
 
-## 5. 개발자 행동 지침
+### 4.3. 모듈 명세
+
+- [config](../replyreview/config/README.md): 로컬 설정 파일(`config.json`) I/O 처리
+- [gui](../replyreview/gui/README.md): PySide6에 기반한 사용자 인터페이스 제공
+
+## 5. 구현 지침
 
 본 프로젝트의 코드를 작성하거나 수정할 때 다음 원칙을 준수해야 합니다.
 

@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import pytest
@@ -64,7 +63,9 @@ class TestConfigManager:
         set_api_key() 호출 시 config.json에 존재하는 다른 필드가 덮어써지지 않고
         보존되는지 검증한다.
         """
-        config_path.write_text('{"openai_api_key": "old-key", "other_field": "value"}', encoding="utf-8")
+        config_path.write_text(
+            '{"openai_api_key": "old-key", "other_field": "value"}', encoding="utf-8"
+        )
         manager.set_api_key("new-key")
         data = manager.load()
         assert data["openai_api_key"] == "new-key"

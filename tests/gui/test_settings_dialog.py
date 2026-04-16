@@ -97,4 +97,5 @@ class TestSettingsDialog:
         API 키 입력 필드에 EchoMode.Password 마스킹이 적용되어 있는지 검증한다.
         """
         from PySide6.QtWidgets import QLineEdit
+
         assert dialog._api_key_input.echoMode() == QLineEdit.EchoMode.Password

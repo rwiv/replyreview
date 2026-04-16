@@ -37,6 +37,8 @@
 
 ### 2.2. 파일 업로드 (단일 파일 선택)
 
+#### ✅ Track 1.2에서 구현 완료
+
 - **UI 요구사항**:
   - 데이터가 로드되지 않은 초기 화면 중앙에 "리뷰 데이터 파일(CSV/Excel)을 선택하세요" 라는 안내 문구와 함께 눈에 띄는 '파일 불러오기' 버튼(`QPushButton`) 배치.
 - **기능 동작**:
@@ -45,7 +47,21 @@
   - 한 번에 하나의 파일만 선택 및 로드 가능 (단일 파일 처리).
   - 파일 로드 성공 시 파싱 로직을 거쳐 메인 리스트 뷰로 화면 전환.
 
+#### 구현 상세
+
+- **파일 선택 UI**: `replyreview/gui/file_load_view.py`의 `FileLoadView` 클래스
+  - `file_selected = Signal(str)` 시그널로 선택된 파일 경로를 `MainWindow`에 전달
+  - `QFileDialog.getOpenFileName`으로 `.csv`, `.xlsx` 필터 적용
+  - 취소 시 아무 동작 없음
+- **메인 윈도우 통합**: `replyreview/gui/main_window.py`의 `MainWindow._on_file_selected`
+  - `ReviewParser.parse`로 파일 파싱
+  - 성공 시 `ReviewListView`로 뷰 전환
+  - `ParserError` 발생 시 `QMessageBox.warning`으로 오류 안내
+- **테스트**: `tests/gui/test_file_load_view.py`, `tests/gui/test_main_window.py`
+
 ### 2.3. 리뷰 데이터 조회 (카드 리스트 뷰)
+
+#### ✅ Track 1.2에서 구현 완료
 
 - **UI 요구사항**:
   - 각 리뷰 데이터는 세로로 스크롤 가능한 `QListWidget`(또는 `QScrollArea`) 내에 **커스텀 카드 위젯**으로 렌더링됨.
@@ -55,6 +71,19 @@
     - [하단]: '답글 생성' 버튼 (버튼 우측 또는 하단에 답글 표시 영역 확보)
 - **기능 동작**:
   - 파싱된 데이터 행(Row) 개수만큼 카드를 동적으로 생성하여 리스트에 추가.
+
+#### 구현 상세
+
+- **리뷰 카드 위젯**: `replyreview/gui/review_card_widget.py`의 `ReviewCardWidget` 클래스
+  - `QFrame` 상속으로 카드 경계 시각화
+  - 별점: `rating` 값만큼 ★을 표시하고 나머지를 ☆으로 채움 (예: rating=3 → `★★★☆☆`)
+  - 고객명, 상품명, 리뷰 원문 렌더링
+  - '답글 생성' 버튼 현재 비활성화 상태 (Track 1.3에서 활성화 예정)
+- **리뷰 리스트 뷰**: `replyreview/gui/review_list_view.py`의 `ReviewListView` 클래스
+  - `QScrollArea` 기반으로 세로 스크롤 기능 제공
+  - `list[ReviewData]`를 받아 각 항목을 `ReviewCardWidget`으로 동적 생성
+  - 내부 컨테이너의 `QVBoxLayout`으로 카드를 순서대로 배치
+- **테스트**: `tests/gui/test_review_card_widget.py`
 
 ### 2.4. AI 답글 생성
 

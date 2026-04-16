@@ -195,8 +195,8 @@ uv run pytest tests/config/
 
 ## Success Criteria
 
-- [ ] `uv run pytest tests/config/` 테스트가 모두 통과한다.
-- [ ] `uv run pyright` 타입 체크 오류가 없다.
-- [ ] `config.json`이 없는 상태에서 `ConfigManager().get_api_key()`를 호출해도 예외가 발생하지 않는다.
-- [ ] `replyreview/config/README.md`가 모듈 역할, 컴포넌트, 스키마, 오류 복구 정책을 포함하여 작성되었다.
+- [x] `uv run pytest tests/config/` 테스트가 모두 통과한다.
+- [x] `uv run pyright` 타입 체크 오류가 없다.
+- [x] `config.json`이 없는 상태에서 `ConfigManager().get_api_key()`를 호출해도 예외가 발생하지 않는다.
+- [x] `replyreview/config/README.md`가 모듈 역할, 컴포넌트, 스키마, 오류 복구 정책을 포함하여 작성되었다.
 
