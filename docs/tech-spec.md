@@ -97,8 +97,18 @@ OpenAI API 키 저장을 위해 프로젝트 루트(실행 파일 경로 기준)
 }
 ```
 
+#### 구현
+
+- **`replyreview/config/config_manager.py`**: `ConfigManager` 클래스는 `config.json` 읽기/쓰기를 전담합니다.
+  - 파일 부재 또는 JSON 파싱 오류 시 기본값(`{"openai_api_key": ""}`)으로 자동 복구
+  - `load()`, `save()`, `get_api_key()`, `set_api_key()` 메서드 제공
+- **`replyreview/config/README.md`**: config 모듈 명세 및 사용 가이드
+
+#### 특징
+
 - 파이썬 내장 `json` 모듈을 사용하여 읽기/쓰기를 수행합니다.
 - 예외 처리: 파일이 존재하지 않거나 형식이 깨진 경우 기본값을 세팅하여 새로 생성합니다.
+- 다른 모듈은 `ConfigManager`를 통해서만 설정에 접근하며, 파일 경로나 JSON 포맷을 직접 다루지 않습니다.
 
 ### 4.4. 클립보드 제어
 

@@ -16,6 +16,8 @@
 
 ### 2.1. 설정 관리 (OpenAI API 키 설정)
 
+#### ✅ Track 1.1에서 구현 완료
+
 - **UI 요구사항**:
   - 메인 화면 상단 또는 별도의 설정 팝업(Dialog) 창에 API 키를 입력할 수 있는 텍스트 필드(`QLineEdit`)와 '저장' 버튼 제공.
   - 보안을 위해 API 키 입력 시 텍스트가 마스킹(비밀번호 형태, `echoMode: Password`)되어야 함.
@@ -23,6 +25,15 @@
   - 앱 최초 실행 시 로컬의 `config.json`을 검사하여 키가 있다면 자동으로 불러옴.
   - 키가 없거나 잘못된 키로 인해 API 통신 실패 시, 사용자에게 키 설정이 필요함을 UI에 안내.
   - 사용자가 키를 입력하고 '저장'을 누르면 `config.json` 파일에 즉시 기록 및 갱신.
+
+#### 구현 상세
+
+- **메인 윈도우**: `replyreview/gui/main_window.py`의 `MainWindow` 클래스 상단 툴바에 '설정' 버튼 배치
+- **설정 다이얼로그**: `replyreview/gui/settings_dialog.py`의 `SettingsDialog` 클래스로 API 키 입력 UI 제공
+- **설정 관리**: `replyreview/config/config_manager.py`의 `ConfigManager` 클래스가 `config.json` 읽기/쓰기 담당
+- **테스트**:
+  - `tests/config/test_config_manager.py`: ConfigManager 통합 테스트
+  - `tests/gui/test_settings_dialog.py`: SettingsDialog GUI 테스트 (pytest-qt 사용)
 
 ### 2.2. 파일 업로드 (단일 파일 선택)
 
