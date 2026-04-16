@@ -28,6 +28,7 @@
 | :--- | :--- | :--- | :--- |
 | 에어팟 프로 케이스 | 김땡땡 | 5 | 배송이 빠르고 상품이 너무 예뻐요! |
 
+
 ### 3.2. 내부 데이터 클래스 (Data Class)
 
 파싱된 데이터는 GUI 위젯으로 전달하기 전에 아래와 같은 불변 데이터 객체로 매핑됩니다.
@@ -49,7 +50,7 @@ class ReviewData:
 - **`replyreview/parser/review_parser.py`**: `ReviewParser` 클래스와 `ParserError` 예외. 파일을 읽어 `ReviewData` 리스트로 변환합니다.
 - **`replyreview/parser/README.md`**: parser 모듈 명세 및 사용 가이드
 
-## 4. 핵심 모듈 구현 전략
+## 4. 핵심 구현 전략
 
 ### 4.1. 비동기 통신 처리 (QThread 기반)
 
