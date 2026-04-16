@@ -22,13 +22,12 @@ def dialog(qtbot: QtBot, config_manager: ConfigManager) -> SettingsDialog:
     return widget
 
 
-@pytest.mark.e2e
 class TestSettingsDialog:
     def test_loads_existing_api_key_on_open(
         self, qtbot: QtBot, config_manager: ConfigManager
     ) -> None:
         """
-        US-01: 다이얼로그가 열릴 때 ConfigManager에 저장된 기존 API 키가 입력 필드에 자동으로 로드되는지 검증한다.
+        다이얼로그가 열릴 때 ConfigManager에 저장된 기존 API 키가 입력 필드에 자동으로 로드되는지 검증한다.
         """
         # Pre-populate the config with an API key
         config_manager.set_api_key("sk-existing-key-123")
@@ -43,7 +42,7 @@ class TestSettingsDialog:
         self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
     ) -> None:
         """
-        US-02: 키를 입력하고 저장 버튼을 클릭하면 ConfigManager에 키가 저장되는지 검증한다.
+        키를 입력하고 저장 버튼을 클릭하면 ConfigManager에 키가 저장되는지 검증한다.
         """
         # Type a new API key in the input field
         test_key = "sk-new-key-456"
@@ -61,31 +60,10 @@ class TestSettingsDialog:
         assert save_button is not None
 
         # Simulate button click
-        qtbot.mouseClick(save_button, Qt.LeftButton)
+        qtbot.mouseClick(save_button, Qt.MouseButton.LeftButton)
 
         # Verify the key was saved
         assert config_manager.get_api_key() == test_key
-
-    def test_save_button_persists_empty_key(
-        self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
-    ) -> None:
-        """
-        UF-03: 빈 문자열 입력 후 저장 시 ConfigManager에 빈 문자열이 저장되는지 검증한다.
-        """
-        # Clear the input field
-        dialog._api_key_input.clear()
-
-        # Find and click the save button
-        from PySide6.QtWidgets import QPushButton
-
-        buttons = dialog.findChildren(QPushButton)
-        save_button = next((btn for btn in buttons if btn.text() == "저장"), None)
-        assert save_button is not None
-
-        qtbot.mouseClick(save_button, Qt.LeftButton)
-
-        # Verify empty key was saved
-        assert config_manager.get_api_key() == ""
 
     def test_dialog_closes_after_save(
         self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
@@ -108,10 +86,31 @@ class TestSettingsDialog:
         save_button = next((btn for btn in buttons if btn.text() == "저장"), None)
         assert save_button is not None
 
-        qtbot.mouseClick(save_button, Qt.LeftButton)
+        qtbot.mouseClick(save_button, Qt.MouseButton.LeftButton)
 
         # Use QTest.qWait to allow signals to be processed
         qtbot.wait(100)
 
         # Dialog should be hidden/closed (accepted)
         assert not dialog.isVisible()
+
+    def test_save_button_persists_empty_key(
+        self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
+    ) -> None:
+        """
+        빈 문자열 입력 후 저장 시 ConfigManager에 빈 문자열이 저장되는지 검증한다.
+        """
+        # Clear the input field
+        dialog._api_key_input.clear()
+
+        # Find and click the save button
+        from PySide6.QtWidgets import QPushButton
+
+        buttons = dialog.findChildren(QPushButton)
+        save_button = next((btn for btn in buttons if btn.text() == "저장"), None)
+        assert save_button is not None
+
+        qtbot.mouseClick(save_button, Qt.MouseButton.LeftButton)
+
+        # Verify empty key was saved
+        assert config_manager.get_api_key() == ""

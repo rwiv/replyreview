@@ -4,6 +4,7 @@
   "ignore": [],
   "venvPath": ".",
   "venv": ".venv",
+  "pythonVersion": "3.14",
   "typeCheckingMode": "standard",
-  "reportInvalidTypeForm": "none",
+  "reportInvalidTypeForm": "none"
 }
