@@ -43,50 +43,38 @@ class TestConfigManager:
         """
         config.json의 JSON 형식이 잘못된 경우 기본값으로 복구하여 반환하는지 검증한다.
         """
-        # Write invalid JSON to config file
         config_path.write_text("{ invalid json }", encoding="utf-8")
-
         loaded = manager.load()
         assert loaded == {"openai_api_key": ""}
 
-    def test_save_creates_file(self, manager: ConfigManager, config_path: Path) -> None:
-        """
-        파일이 없을 때 save()를 호출하면 파일이 생성되는지 검증한다.
-        """
-        assert not config_path.exists()
-        manager.save({"openai_api_key": "sk-test"})
-        assert config_path.exists()
-
-    def test_save_overwrites_existing_file(
+    def test_get_api_key_returns_empty_when_key_missing_from_valid_json(
         self, manager: ConfigManager, config_path: Path
     ) -> None:
         """
-        IA-05: 기존 파일을 덮어쓰는지 검증한다.
+        config.json이 유효한 JSON이지만 openai_api_key 필드가 없는 경우
+        get_api_key()가 빈 문자열을 반환하는지 검증한다.
         """
-        manager.save({"openai_api_key": "sk-old"})
-        manager.save({"openai_api_key": "sk-new"})
-
-        with open(config_path, encoding="utf-8") as f:
-            data = json.load(f)
-        assert data["openai_api_key"] == "sk-new"
-
-    def test_set_api_key_persists_to_file(
-        self, manager: ConfigManager, config_path: Path
-    ) -> None:
-        """
-        set_api_key()가 파일에 실제로 저장되는지 검증한다.
-        """
-        manager.set_api_key("sk-persist-test")
-
-        # Read the file directly to verify persistence
-        with open(config_path, encoding="utf-8") as f:
-            data = json.load(f)
-        assert data["openai_api_key"] == "sk-persist-test"
-
-    def test_empty_api_key(self, manager: ConfigManager) -> None:
-        """
-        빈 API 키를 저장하고 로드하는지 검증한다.
-        """
-        manager.set_api_key("")
+        config_path.write_text('{"other_field": "value"}', encoding="utf-8")
         assert manager.get_api_key() == ""
 
+    def test_set_api_key_preserves_other_fields(
+        self, manager: ConfigManager, config_path: Path
+    ) -> None:
+        """
+        set_api_key() 호출 시 config.json에 존재하는 다른 필드가 덮어써지지 않고
+        보존되는지 검증한다.
+        """
+        config_path.write_text('{"openai_api_key": "old-key", "other_field": "value"}', encoding="utf-8")
+        manager.set_api_key("new-key")
+        data = manager.load()
+        assert data["openai_api_key"] == "new-key"
+        assert data["other_field"] == "value"
+
+    def test_save_and_load_full_dict(self, manager: ConfigManager) -> None:
+        """
+        save()로 저장한 전체 딕셔너리가 load()로 동일하게 복원되는지 검증한다.
+        """
+        test_data = {"openai_api_key": "sk-test", "other_field": "data"}
+        manager.save(test_data)
+        loaded = manager.load()
+        assert loaded == test_data

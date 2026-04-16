@@ -30,29 +30,6 @@
 
 ## Architecture
 
-```mermaid
-graph TD
-    subgraph "__main__.py"
-        Entry[QApplication + MainWindow 실행]
-    end
-
-    subgraph "gui/"
-        MainWindow[MainWindow<br/>QMainWindow]
-        SettingsDialog[SettingsDialog<br/>QDialog]
-    end
-
-    subgraph "config/"
-        ConfigManager[ConfigManager]
-        ConfigFile[config.json]
-    end
-
-    Entry --> MainWindow
-    MainWindow -- "설정 버튼 클릭" --> SettingsDialog
-    SettingsDialog -- "load_config / save_config" --> ConfigManager
-    ConfigManager -- "json 파일 I/O" --> ConfigFile
-    MainWindow -- "앱 시작 시 load_config" --> ConfigManager
-```
-
 - **`__main__.py`**: `QApplication` 인스턴스를 생성하고 `MainWindow`를 표시하는 앱 진입점.
 - **`gui/` (Presentation Layer)**: PySide6 위젯 클래스를 보관합니다. 비즈니스 로직 없이 UI 렌더링과 사용자 이벤트 처리만 담당합니다.
 - **`config/` (Data & Config Layer)**: `config.json` 파일 I/O를 추상화하는 `ConfigManager`를 보관합니다.
@@ -91,8 +68,8 @@ tests/
 
 ## Testing Strategy
 
-- **Unit Testing (`ConfigManager`)**: `pytest`의 `tmp_path` fixture를 활용하여 실제 파일 I/O 기반으로 읽기, 쓰기, 오류 복구 시나리오를 검증합니다. 외부 의존성 없이 독립적으로 실행 가능해야 합니다.
-- **GUI Testing (`SettingsDialog`)**: `pytest-qt`(`qtbot`)를 사용하여 위젯 인스턴스화, 입력 이벤트 시뮬레이션, 저장 흐름을 검증합니다. 테스트 실행을 위해 dev 의존성에 `pytest-qt`를 추가합니다.
+- **`ConfigManager`**: `pytest`의 `tmp_path` fixture를 활용하여 실제 파일 I/O 기반으로 읽기, 쓰기, 오류 복구 시나리오를 검증합니다.
+- **`SettingsDialog`**: `pytest-qt`(`qtbot`)를 사용하여 위젯 인스턴스화, 입력 이벤트 시뮬레이션, 저장 흐름을 검증합니다. 테스트 실행을 위해 dev 의존성에 `pytest-qt`를 추가합니다.
 
 ## Acceptance Criteria
 
@@ -103,3 +80,4 @@ tests/
 - [ ] `config.json`이 없거나 형식이 잘못된 경우 앱이 크래시 없이 기본값으로 동작한다.
 - [ ] 모든 테스트(`uv run pytest`)가 통과한다.
 - [ ] 타입 체크(`uv run pyright`) 오류가 없다.
+

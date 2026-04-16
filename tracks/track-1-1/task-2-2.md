@@ -57,6 +57,10 @@ class SettingsDialog(QDialog):
     MIN_WIDTH = 400
 
     def __init__(self, config_manager: ConfigManager, parent=None) -> None:
+        """
+        config_manager를 주입받아 API 키 로드·저장을 위임한다.
+        테스트 시 임시 경로로 초기화된 ConfigManager를 주입하여 실제 파일과 격리할 수 있다.
+        """
         super().__init__(parent)
         self._config_manager = config_manager
         self._setup_ui()
@@ -83,7 +87,6 @@ class SettingsDialog(QDialog):
         layout.addLayout(button_layout)
 
     def _load_api_key(self) -> None:
-        # Populate the input field with the currently saved API key on open
         self._api_key_input.setText(self._config_manager.get_api_key())
 
     @Slot()
@@ -151,11 +154,13 @@ def dialog(qtbot: QtBot, config_manager: ConfigManager) -> SettingsDialog:
 
 
 class TestSettingsDialog:
+    """SettingsDialog의 UI 렌더링 및 사용자 인터랙션 흐름을 검증하는 테스트 클래스."""
+
     def test_loads_existing_api_key_on_open(
         self, qtbot: QtBot, config_manager: ConfigManager
     ) -> None:
         """
-        US-01: 다이얼로그가 열릴 때 ConfigManager에 저장된 기존 API 키가 입력 필드에 자동으로 로드되는지 검증한다.
+        다이얼로그가 열릴 때 ConfigManager에 저장된 기존 API 키가 입력 필드에 자동으로 로드되는지 검증한다.
         """
         # ...
 
@@ -163,7 +168,15 @@ class TestSettingsDialog:
         self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
     ) -> None:
         """
-        US-02: 키를 입력하고 저장 버튼을 클릭하면 ConfigManager에 키가 저장되는지 검증한다.
+        키를 입력하고 저장 버튼을 클릭하면 ConfigManager에 키가 저장되는지 검증한다.
+        """
+        # ...
+
+    def test_dialog_closes_after_save(
+        self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
+    ) -> None:
+        """
+        다이얼로그가 저장 버튼 클릭 후 닫히는지 검증한다.
         """
         # ...
 
@@ -171,7 +184,23 @@ class TestSettingsDialog:
         self, qtbot: QtBot, dialog: SettingsDialog, config_manager: ConfigManager
     ) -> None:
         """
-        UF-03: 빈 문자열 입력 후 저장 시 ConfigManager에 빈 문자열이 저장되는지 검증한다.
+        빈 문자열 입력 후 저장 시 ConfigManager에 빈 문자열이 저장되는지 검증한다.
+        """
+        # ...
+
+    def test_input_field_empty_when_no_key_stored(
+        self, qtbot: QtBot, config_manager: ConfigManager
+    ) -> None:
+        """
+        저장된 API 키가 없을 때 다이얼로그를 열면 입력 필드가 비어있는지 검증한다.
+        """
+        # ...
+
+    def test_api_key_input_uses_password_echo_mode(
+        self, dialog: SettingsDialog
+    ) -> None:
+        """
+        API 키 입력 필드에 EchoMode.Password 마스킹이 적용되어 있는지 검증한다.
         """
         # ...
 ```
@@ -199,8 +228,9 @@ uv run pytest tests/gui/
 
 ## Success Criteria
 
-- [x] `uv run pytest tests/gui/` 테스트가 모두 통과한다.
-- [x] `uv run pyright` 타입 체크 오류가 없다.
-- [x] 메인 윈도우에서 '설정' 버튼 클릭 시 설정 다이얼로그가 모달로 열린다.
-- [x] 설정 다이얼로그에서 API 키 입력 후 저장 시 `config.json`에 기록되고, 앱 재실행 시 동일한 키가 다이얼로그에 자동 로드된다.
-- [x] `replyreview/gui/README.md`가 모듈 역할, 핵심 컴포넌트, 시그널/슬롯 구조, 테스트 전략을 포함하여 작성되었다.
+- [ ] `uv run pytest tests/gui/` 테스트가 모두 통과한다.
+- [ ] `uv run pyright` 타입 체크 오류가 없다.
+- [ ] 메인 윈도우에서 '설정' 버튼 클릭 시 설정 다이얼로그가 모달로 열린다.
+- [ ] 설정 다이얼로그에서 API 키 입력 후 저장 시 `config.json`에 기록되고, 앱 재실행 시 동일한 키가 다이얼로그에 자동 로드된다.
+- [ ] `replyreview/gui/README.md`가 모듈 역할, 핵심 컴포넌트, 시그널/슬롯 구조, 테스트 전략을 포함하여 작성되었다.
+

@@ -11,7 +11,6 @@ class MainWindow(QMainWindow):
     핵심 기능 UI를 수용하는 컨테이너 역할을 하며, 상단 툴바를 통해 설정 다이얼로그에 진입할 수 있다.
     """
 
-    # Window configuration constants
     WINDOW_TITLE = "ReplyReview"
     WINDOW_WIDTH = 900
     WINDOW_HEIGHT = 600

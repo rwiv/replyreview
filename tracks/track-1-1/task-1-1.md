@@ -45,7 +45,6 @@ class MainWindow(QMainWindow):
     핵심 기능 UI를 수용하는 컨테이너 역할을 하며, 상단 툴바를 통해 설정 다이얼로그에 진입할 수 있다.
     """
 
-    # Window configuration constants
     WINDOW_TITLE = "ReplyReview"
     WINDOW_WIDTH = 900
     WINDOW_HEIGHT = 600
@@ -69,14 +68,14 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(settings_button)
 
     def _setup_central_widget(self) -> None:
-        # Placeholder: Task 1.2에서 리뷰 카드 리스트 뷰로 교체 예정
+        # TODO: 리뷰 카드 리스트 뷰로 교체 예정
         placeholder = QLabel("리뷰 데이터 파일을 불러와 주세요.")
         placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCentralWidget(placeholder)
 
     @Slot()
     def _open_settings_dialog(self) -> None:
-        # Task 2.2에서 SettingsDialog 연동 로직으로 교체 예정
+        # TODO: SettingsDialog 연동 로직으로 교체 예정
         pass
 ```
 
@@ -119,5 +118,6 @@ uv run python -m replyreview
 
 ## Success Criteria
 
-- [x] `uv run python -m replyreview` 실행 시 메인 윈도우가 정상적으로 표시된다.
-- [x] `uv run pyright` 타입 체크 오류가 없다.
+- [ ] `uv run python -m replyreview` 실행 시 메인 윈도우가 정상적으로 표시된다.
+- [ ] `uv run pyright` 타입 체크 오류가 없다.
+
