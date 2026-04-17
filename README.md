@@ -21,7 +21,7 @@
 - **GUI 프레임워크**: PySide6 (Qt for Python)
 - **AI 연동**: OpenAI API
 - **빌드 도구**: PyInstaller
-- **데이터 처리**: `pandas` (CSV 및 Excel 데이터 파싱)
+- **데이터 처리**: pandas (CSV 및 Excel 데이터 파싱)
 
 ## 4. 시작하기 (Getting Started)
 
