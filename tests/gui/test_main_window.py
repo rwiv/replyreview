@@ -9,6 +9,7 @@ from pytestqt.qtbot import QtBot
 from replyreview.gui.file_load_view import FileLoadView
 from replyreview.gui.main_window import MainWindow
 from replyreview.gui.review_list_view import ReviewListView
+from tests.fakes import FakeAIClient
 
 
 @pytest.fixture
@@ -61,14 +62,19 @@ class TestMainWindow:
     ) -> None:
         """
         유효한 파일이 선택되면 중앙 위젯이 ReviewListView로 전환되는지 검증한다.
+        OpenAIClient는 FakeAIClient로 대체하여 실제 API 키 없이 테스트한다.
         """
         with patch(
             "replyreview.gui.file_load_view.QFileDialog.getOpenFileName",
             return_value=(valid_csv, ""),
         ):
-            central_widget = window.centralWidget()
-            assert isinstance(central_widget, FileLoadView)
-            qtbot.mouseClick(central_widget._load_button, Qt.MouseButton.LeftButton)
+            with patch(
+                "replyreview.gui.main_window.OpenAIClient",
+                return_value=FakeAIClient(),
+            ):
+                central_widget = window.centralWidget()
+                assert isinstance(central_widget, FileLoadView)
+                qtbot.mouseClick(central_widget._load_button, Qt.MouseButton.LeftButton)
 
         assert isinstance(window.centralWidget(), ReviewListView)
 

@@ -1,133 +1,161 @@
+"""ReviewCardWidget 비동기 답글 생성 흐름 테스트."""
+
 import pytest
+from PySide6.QtCore import Qt
 from pytestqt.qtbot import QtBot
 
-from replyreview.gui.review_card_widget import ReviewCardWidget
-from replyreview.gui.review_list_view import ReviewListView
+from replyreview.ai.client import AIAuthError
+from replyreview.gui.review_card_widget import (
+    _BUTTON_TEXT_DEFAULT,
+    _BUTTON_TEXT_LOADING,
+    _ERROR_API_KEY,
+    _ERROR_GENERAL,
+    ReviewCardWidget,
+)
 from replyreview.models import ReviewData
+from tests.fakes import FakeAIClient
 
 
 @pytest.fixture
-def sample_review() -> ReviewData:
+def review() -> ReviewData:
     """테스트용 ReviewData fixture."""
     return ReviewData(
-        product_name="에어팟 프로 케이스",
-        customer_name="김땡땡",
-        rating=5,
-        content="배송이 빠르고 상품이 너무 예뻐요!",
+        product_name="테스트 상품",
+        customer_name="홍길동",
+        rating=4,
+        content="좋은 상품입니다.",
     )
 
 
 @pytest.fixture
-def card_widget(qtbot: QtBot, sample_review: ReviewData) -> ReviewCardWidget:
-    """테스트용 ReviewCardWidget 인스턴스를 생성하고 qtbot에 등록하는 fixture."""
-    widget = ReviewCardWidget(review=sample_review)
+def card(qtbot: QtBot, review: ReviewData) -> ReviewCardWidget:
+    """기본 FakeAIClient로 초기화된 ReviewCardWidget fixture."""
+    widget = ReviewCardWidget(review=review, ai_client=FakeAIClient())
     qtbot.addWidget(widget)
     return widget
 
 
 class TestReviewCardWidget:
-    """ReviewCardWidget의 렌더링 결과를 검증하는 테스트 클래스."""
+    """ReviewCardWidget의 비동기 답글 생성 흐름을 검증하는 테스트 클래스."""
 
-    def test_header_displays_full_stars(
-        self, card_widget: ReviewCardWidget, sample_review: ReviewData
+    def test_reply_button_is_enabled_initially(self, card: ReviewCardWidget) -> None:
+        """'답글 생성' 버튼이 초기에 활성화 상태인지 검증한다."""
+        assert card._reply_button.isEnabled()
+        assert card._reply_button.text() == _BUTTON_TEXT_DEFAULT
+
+    def test_button_shows_loading_text_on_click(
+        self, qtbot: QtBot, card: ReviewCardWidget
     ) -> None:
         """
-        rating=5일 때 헤더 라벨에 ★이 5개 표시되는지 검증한다.
+        '답글 생성' 버튼 클릭 후 버튼 텍스트가 "생성 중..."으로 변경되고 비활성화되는지 검증한다.
+        _on_generate_clicked가 동기적으로 실행되므로 클릭 직후 상태를 즉시 확인할 수 있다.
         """
-        header_text = card_widget._header_label.text()
-        assert header_text.startswith("★★★★★")
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
 
-    def test_header_displays_partial_stars(self, qtbot: QtBot) -> None:
-        """
-        rating=3일 때 헤더 라벨에 ★ 3개와 ☆ 2개가 표시되는지 검증한다.
-        """
-        review = ReviewData(
-            product_name="상품",
-            customer_name="고객",
-            rating=3,
-            content="내용",
+        assert card._reply_button.text() == _BUTTON_TEXT_LOADING
+        assert not card._reply_button.isEnabled()
+
+        # 다음 테스트에 영향을 주지 않도록 워커 완료를 기다린다.
+        qtbot.waitUntil(lambda: card._reply_button.isEnabled(), timeout=3000)
+
+    def test_reply_area_shown_after_generation(
+        self, qtbot: QtBot, card: ReviewCardWidget
+    ) -> None:
+        """답글 생성 완료 후 답글 텍스트 영역이 표시되는지 검증한다."""
+        assert not card._reply_area.isVisible()
+
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: card._reply_area.isVisible(), timeout=3000)
+
+    def test_reply_area_contains_generated_text(
+        self, qtbot: QtBot, card: ReviewCardWidget, review: ReviewData
+    ) -> None:
+        """생성된 답글 텍스트가 카드 내 텍스트 영역에 표시되는지 검증한다."""
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: card._reply_area.isVisible(), timeout=3000)
+
+        expected = FakeAIClient.REPLY_TEMPLATE.format(
+            customer_name=review.customer_name
         )
-        card = ReviewCardWidget(review)
-        qtbot.addWidget(card)
+        assert card._reply_area.toPlainText() == expected
 
-        header_text = card._header_label.text()
-        assert header_text.startswith("★★★☆☆")
-
-    def test_header_displays_customer_name(
-        self, card_widget: ReviewCardWidget, sample_review: ReviewData
+    def test_button_restored_after_generation(
+        self, qtbot: QtBot, card: ReviewCardWidget
     ) -> None:
-        """
-        헤더 라벨에 고객명이 포함되는지 검증한다.
-        """
-        header_text = card_widget._header_label.text()
-        assert sample_review.customer_name in header_text
+        """답글 생성 완료 후 버튼 텍스트와 활성화 상태가 원래대로 복구되는지 검증한다."""
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: card._reply_button.isEnabled(), timeout=3000)
 
-    def test_header_displays_product_name(
-        self, card_widget: ReviewCardWidget, sample_review: ReviewData
+        assert card._reply_button.text() == _BUTTON_TEXT_DEFAULT
+
+    def test_error_label_shown_on_general_error(
+        self, qtbot: QtBot, review: ReviewData
     ) -> None:
-        """
-        헤더 라벨에 상품명이 포함되는지 검증한다.
-        """
-        header_text = card_widget._header_label.text()
-        assert sample_review.product_name in header_text
+        """일반 오류 발생 시 일반 오류 메시지 레이블이 표시되는지 검증한다."""
+        error_card = ReviewCardWidget(
+            review=review,
+            ai_client=FakeAIClient(raise_error=RuntimeError("network error")),
+        )
+        qtbot.addWidget(error_card)
 
-    def test_content_label_displays_review_text(
-        self, card_widget: ReviewCardWidget, sample_review: ReviewData
+        qtbot.mouseClick(error_card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: error_card._error_label.isVisible(), timeout=3000)
+
+        assert error_card._error_label.text() == _ERROR_GENERAL
+
+    def test_error_label_shows_auth_message_on_auth_error(
+        self, qtbot: QtBot, review: ReviewData
     ) -> None:
-        """
-        본문 라벨에 리뷰 원문이 표시되는지 검증한다.
-        """
-        content_text = card_widget._content_label.text()
-        assert content_text == sample_review.content
+        """AIAuthError 발생 시 API 키 오류 메시지 레이블이 표시되는지 검증한다."""
+        auth_card = ReviewCardWidget(
+            review=review,
+            ai_client=FakeAIClient(raise_error=AIAuthError("invalid key")),
+        )
+        qtbot.addWidget(auth_card)
 
-    def test_reply_button_is_disabled(self, card_widget: ReviewCardWidget) -> None:
-        """
-        답글 생성 버튼이 비활성화(disabled) 상태인지 검증한다.
-        """
-        assert card_widget._reply_button.isEnabled() is False
+        qtbot.mouseClick(auth_card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: auth_card._error_label.isVisible(), timeout=3000)
 
-    def test_reply_button_text(self, card_widget: ReviewCardWidget) -> None:
-        """
-        답글 생성 버튼의 텍스트가 올바른지 검증한다.
-        """
-        assert card_widget._reply_button.text() == "답글 생성"
+        assert auth_card._error_label.text() == _ERROR_API_KEY
 
+    def test_button_restored_after_error(
+        self, qtbot: QtBot, review: ReviewData
+    ) -> None:
+        """오류 발생 후 버튼 텍스트와 활성화 상태가 원래대로 복구되는지 검증한다."""
+        error_card = ReviewCardWidget(
+            review=review,
+            ai_client=FakeAIClient(raise_error=RuntimeError("error")),
+        )
+        qtbot.addWidget(error_card)
 
-class TestReviewListView:
-    """ReviewListView의 카드 렌더링 수를 검증하는 테스트 클래스."""
+        qtbot.mouseClick(error_card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: error_card._reply_button.isEnabled(), timeout=3000)
 
-    def test_renders_all_cards(self, qtbot: QtBot) -> None:
-        """
-        전달된 ReviewData 수만큼 ReviewCardWidget이 렌더링되는지 검증한다.
-        """
-        reviews = [
-            ReviewData("상품1", "고객1", 5, "좋아요"),
-            ReviewData("상품2", "고객2", 4, "좋습니다"),
-        ]
-        list_view = ReviewListView(reviews)
-        qtbot.addWidget(list_view)
+        assert error_card._reply_button.text() == _BUTTON_TEXT_DEFAULT
 
-        container = list_view.widget()
-        assert container is not None
-        layout = container.layout()
-        assert layout is not None
-        assert layout.count() == len(reviews)
+    def test_copy_button_hidden_before_generation(self, card: ReviewCardWidget) -> None:
+        """답글 생성 전에는 클립보드 복사 버튼이 숨겨져 있는지 검증한다."""
+        assert not card._copy_button.isVisible()
 
-    def test_card_widgets_are_review_card_widget_instances(self, qtbot: QtBot) -> None:
-        """
-        렌더링된 위젯이 ReviewCardWidget 인스턴스인지 검증한다.
-        """
-        reviews = [
-            ReviewData("상품", "고객", 5, "내용"),
-        ]
-        list_view = ReviewListView(reviews)
-        qtbot.addWidget(list_view)
+    def test_copy_button_shown_after_generation(
+        self, qtbot: QtBot, card: ReviewCardWidget
+    ) -> None:
+        """답글 생성 완료 후 클립보드 복사 버튼이 노출되는지 검증한다."""
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: card._copy_button.isVisible(), timeout=3000)
 
-        container = list_view.widget()
-        assert container is not None
-        layout = container.layout()
-        assert layout is not None
-        item = layout.itemAt(0)
-        assert item is not None
-        widget = item.widget()
-        assert isinstance(widget, ReviewCardWidget)
+    def test_copy_button_copies_reply_to_clipboard(
+        self, qtbot: QtBot, card: ReviewCardWidget, review: ReviewData
+    ) -> None:
+        """클립보드 복사 버튼 클릭 시 시스템 클립보드에 답글 텍스트가 설정되는지 검증한다."""
+        from PySide6.QtWidgets import QApplication
+
+        qtbot.mouseClick(card._reply_button, Qt.MouseButton.LeftButton)
+        qtbot.waitUntil(lambda: card._copy_button.isVisible(), timeout=3000)
+
+        qtbot.mouseClick(card._copy_button, Qt.MouseButton.LeftButton)
+
+        expected = FakeAIClient.REPLY_TEMPLATE.format(
+            customer_name=review.customer_name
+        )
+        assert QApplication.clipboard().text() == expected

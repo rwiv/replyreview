@@ -117,7 +117,48 @@ OpenAI API 키 저장을 위해 프로젝트 루트(실행 파일 경로 기준)
 - 예외 처리: 파일이 존재하지 않거나 형식이 깨진 경우 기본값을 세팅하여 새로 생성합니다.
 - 다른 모듈은 `ConfigManager`를 통해서만 설정에 접근하며, 파일 경로나 JSON 포맷을 직접 다루지 않습니다.
 
-### 4.4. 클립보드 제어
+### 4.4. AI 클라이언트 추상화 및 비동기 처리
+
+#### AI 클라이언트 인터페이스
+
+외부 AI 서비스 의존성을 분리하고 테스트 용이성을 확보하기 위해 Abstract Base Class(ABC)를 기반으로 클라이언트를 추상화합니다.
+
+- **`replyreview/ai/client.py`**: `AIClient` ABC와 `AIAuthError` 정의
+  - `AIClient`: `generate_reply(review: ReviewData) -> str` 추상 메서드 정의
+  - `AIAuthError`: OpenAI 인증 실패 오류로, 일반 네트워크 오류와 구별
+- **`replyreview/ai/openai_client.py`**: `OpenAIClient` 구현
+  - LangChain `ChatOpenAI`를 사용하여 실제 답글 생성
+  - 생성자에서 `api_key: str` 주입받아 `ChatPromptTemplate` 체인 초기화
+  - `openai.AuthenticationError` 발생 시 `AIAuthError`로 변환
+- **`tests/fakes.py`**: `FakeAIClient` 테스트 전용 구현
+  - 네트워크 호출 없이 고정 텍스트 반환
+  - `raise_error` 옵션으로 오류 시나리오 시뮬레이션
+  - 프로덕션 패키지에 포함되지 않음 (PyInstaller 제외)
+
+#### 비동기 워커
+
+GUI 프리징 없이 AI 응답을 기다리기 위해 PySide6의 `QRunnable` 및 `QThreadPool`을 활용합니다.
+
+- **`replyreview/ai/worker.py`**: 비동기 작업 인프라
+  - `WorkerSignals(QObject)`: 워커가 발행하는 신호 컨테이너
+    - `finished(str)`: 성공 시, 생성된 답글 텍스트 전달
+    - `auth_error()`: API 키 인증 실패 시 (파라미터 없음)
+    - `error(str)`: 기타 예외 발생 시, 오류 메시지 전달
+  - `ReplyWorker(QRunnable)`: 백그라운드 스레드에서 `AIClient.generate_reply` 호출
+    - `AIAuthError` 발생 시 `auth_error` 신호 발행
+    - 그 외 예외 시 `error` 신호 발행
+    - 신호-슬롯 메커니즘으로 메인 스레드 UI 업데이트
+
+#### ReviewCardWidget 비동기 통합
+
+- **`replyreview/gui/review_card_widget.py`**: 답글 생성 UI 관리
+  - 생성자에 `ai_client: AIClient` 파라미터 추가
+  - `_on_generate_clicked`: 워커 생성 후 `QThreadPool.globalInstance()`에 제출
+  - `_on_reply_finished(text)`: 답글 텍스트 표시 및 복사 버튼 노출
+  - `_on_reply_auth_error()`: API 키 오류 메시지 빨간색으로 표시
+  - `_on_reply_error(message)`: 일반 오류 메시지 빨간색으로 표시
+
+### 4.5. 클립보드 제어
 
 PySide6의 `QApplication.clipboard()` 객체를 활용하여 데스크톱 시스템 클립보드에 접근합니다.
 

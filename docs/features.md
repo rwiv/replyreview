@@ -107,7 +107,34 @@
 
 #### 구현 상세
 
-미구현
+- **AI 클라이언트 추상화**: `replyreview/ai/client.py`의 `AIClient` ABC와 `AIAuthError` 정의
+  - `AIClient`는 `generate_reply(review: ReviewData) -> str` 추상 메서드 정의
+  - `AIAuthError`는 OpenAI 인증 실패를 나타내는 커스텀 예외
+- **OpenAI 클라이언트**: `replyreview/ai/openai_client.py`의 `OpenAIClient`
+  - LangChain `ChatOpenAI` 사용, `ChatPromptTemplate`으로 프롬프트 구성
+  - `docs/tech-spec.md` 4.3절의 System Message / Human Message 템플릿 적용
+  - `openai.AuthenticationError` 발생 시 `AIAuthError`로 변환
+- **비동기 워커**: `replyreview/ai/worker.py`의 `ReplyWorker` 및 `WorkerSignals`
+  - `QRunnable` 기반으로 백그라운드 스레드에서 `AIClient.generate_reply` 호출
+  - `WorkerSignals`는 `finished(str)`, `auth_error()`, `error(str)` 세 신호 제공
+  - `AIAuthError` 발생 시 `auth_error` 신호, 기타 예외 시 `error` 신호 발행
+- **리뷰 카드 위젯 개선**: `replyreview/gui/review_card_widget.py`의 `ReviewCardWidget`
+  - 생성자에 `ai_client: AIClient` 파라미터 추가
+  - `_on_generate_clicked`: 버튼 비활성화/"생성 중..." 텍스트로 변경, `ReplyWorker` 생성 후 `QThreadPool.globalInstance()`에 제출
+  - `_on_reply_finished`: 생성된 텍스트를 `QTextEdit` 영역에 표시, 버튼 복구, 클립보드 복사 버튼 노출
+  - `_on_reply_auth_error`: API 키 오류 메시지를 빨간색으로 표시, 버튼 복구
+  - `_on_reply_error`: 일반 오류 메시지를 빨간색으로 표시, 버튼 복구
+- **리뷰 리스트 뷰**: `replyreview/gui/review_list_view.py`의 `ReviewListView`
+  - `ai_client: AIClient` 파라미터 추가, 각 `ReviewCardWidget` 생성 시 전달
+- **메인 윈도우**: `replyreview/gui/main_window.py`의 `MainWindow`
+  - `_on_file_selected`에서 `ConfigManager.get_api_key()`로 API 키 읽음
+  - `OpenAIClient` 생성 후 `ReviewListView`에 주입
+  - API 키 공백은 파일 로드 단계에서 차단하지 않으며, 답글 생성 시 카드 레벨에서 처리
+- **테스트**:
+  - `tests/ai/test_fake_client.py`: `FakeAIClient` 동작 검증
+  - `tests/ai/test_openai_client.py`: `OpenAIClient` 수동 통합 테스트 (자동 실행 제외)
+  - `tests/gui/test_review_card_widget.py`: 버튼 상태 전환, 답글 표시, 오류 처리 검증
+  - `tests/gui/test_main_window.py`: `OpenAIClient` 의존성 패치로 `ReviewListView` 전환 검증
 
 ### 3.5. 결과물 클립보드 복사
 
@@ -121,5 +148,14 @@
 
 #### 구현 상세
 
-미구현
+- **클립보드 복사 버튼**: `replyreview/gui/review_card_widget.py`의 `ReviewCardWidget`
+  - `_copy_button` (`QPushButton`)은 초기에 숨겨짐 (`setVisible(False)`)
+  - 답글 생성 완료 시 `_on_reply_finished`에서 버튼 노출 (`setVisible(True)`)
+  - 버튼 클릭 시 `_on_copy_clicked` 슬롯 실행
+- **복사 동작**: `_on_copy_clicked` 슬롯
+  - `QApplication.clipboard().setText()`으로 텍스트를 시스템 클립보드에 복사
+  - 버튼 텍스트를 "복사 완료!"로 변경
+  - `QTimer.singleShot(_COPY_FEEDBACK_DURATION_MS)`로 1.5초 후 원래 텍스트 복구
+- **테스트**:
+  - `tests/gui/test_review_card_widget.py`: 클립보드 복사 버튼 표시 여부, 복사 동작, 클립보드 내용 검증
 
