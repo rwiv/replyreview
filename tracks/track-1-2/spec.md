@@ -97,7 +97,7 @@ tests/
     └── test_main_window.py          # 신규: MainWindow 통합 GUI 테스트
 ```
 
-## Domain Concepts
+## Core Components
 
 - **ReviewData**: 파싱된 단일 리뷰를 나타내는 불변 데이터 클래스. GUI와 파서 계층 모두에서 사용하는 공유 도메인 모델.
 - **ReviewParser**: CSV/Excel 파일을 읽어 `ReviewData` 리스트를 반환하는 파서 클래스.

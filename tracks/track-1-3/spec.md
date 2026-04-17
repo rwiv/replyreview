@@ -106,7 +106,7 @@ docs/
 └── tech-spec.md                 # 수정: ai 모듈 디렉터리 구조 반영
 ```
 
-## Domain Concepts
+## Core Components
 
 - **AIClient**: 답글 생성 인터페이스를 정의하는 ABC. 실제 AI 서비스(OpenAI)와 테스트 환경(FakeAIClient)을 동일한 인터페이스로 교체 가능하게 한다.
 - **AIAuthError**: OpenAI 인증 실패(잘못된 API 키)를 나타내는 커스텀 예외. `WorkerSignals.auth_error` 시그널을 통해 `ReviewCardWidget`에 전달되어 구체적인 오류 메시지를 표시하는 데 사용된다.

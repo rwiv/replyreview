@@ -60,7 +60,7 @@ tests/
     └── test_settings_dialog.py      # 신규: SettingsDialog GUI 테스트
 ```
 
-## Domain Concepts
+## Core Components
 
 - **ConfigManager**: `config.json`에 대한 읽기/쓰기를 전담하는 클래스. 파일 부재 또는 파싱 오류 시 기본값(`{"openai_api_key": ""}`)으로 자동 복구합니다.
 - **MainWindow**: 앱의 루트 윈도우. 현 트랙에서는 빈 컨텐츠 영역과 설정 진입 버튼만 제공하며, 이후 트랙에서 리뷰 뷰어 등 핵심 UI를 수용하는 컨테이너 역할을 합니다.
