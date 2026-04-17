@@ -1,13 +1,3 @@
-"""
-OpenAIClient 수동 통합 테스트.
-
-이 테스트는 실제 OpenAI API를 호출하므로 pytest 자동 실행 대상이 아닙니다.
-pytestmark = pytest.mark.skip 이 적용되어 uv run pytest 실행 시 자동으로 건너뜁니다.
-
-수동 실행이 필요한 경우:
-    OPENAI_API_KEY=sk-... uv run pytest tests/ai/test_openai_client.py -v --no-header
-"""
-
 import os
 
 import pytest
