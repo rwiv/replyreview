@@ -9,12 +9,12 @@ dependencies = [
   "langchain-openai>=0.3.35",
   "openpyxl>=3.1.5",
   "pandas>=2.3.3",
-  "pyinstaller>=6.19.0",
   "pyside6>=6.10.3",
 ]
 
 [dependency-groups]
 dev = [
+  "pyinstaller>=6.19.0",
   "pyright>=1.1.408",
   "pytest>=8.4.2",
   "pytest-asyncio>=1.2.0",

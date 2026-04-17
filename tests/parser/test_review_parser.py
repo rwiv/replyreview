@@ -113,3 +113,71 @@ class TestReviewParser:
         assert len(result) == 2
         assert result[0].product_name == "상품1"
         assert result[1].product_name == "상품2"
+
+    def test_parse_raises_parser_error_on_csv_read_failure(
+        self, parser: ReviewParser, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        pd.read_csv 호출 시 예외가 발생하면 ParserError가 raise되는지 검증한다.
+        """
+        csv_path = tmp_path / "reviews.csv"
+        csv_path.write_text("dummy")
+
+        def mock_read_csv(*args, **kwargs):
+            raise ValueError("CSV parsing failed")
+
+        monkeypatch.setattr(pd, "read_csv", mock_read_csv)
+
+        with pytest.raises(ParserError, match="파일을 읽는 중 오류가 발생했습니다"):
+            parser.parse(str(csv_path))
+
+    def test_parse_raises_parser_error_on_completely_empty_csv(
+        self, parser: ReviewParser, tmp_path: Path
+    ) -> None:
+        """
+        바이트 내용이 전혀 없는 빈 파일(write_text(""))을 입력했을 때
+        pd.errors.EmptyDataError가 ParserError로 변환되는지 검증한다.
+        """
+        csv_path = tmp_path / "empty.csv"
+        csv_path.write_text("")
+
+        with pytest.raises(ParserError, match="파일을 읽는 중 오류가 발생했습니다"):
+            parser.parse(str(csv_path))
+
+    def test_parse_raises_parser_error_on_excel_read_failure(
+        self, parser: ReviewParser, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        pd.read_excel 호출 시 예외가 발생하면 ParserError가 raise되는지 검증한다.
+        """
+        excel_path = tmp_path / "reviews.xlsx"
+        excel_path.write_bytes(b"invalid xlsx content")
+
+        def mock_read_excel(*args, **kwargs):
+            raise ValueError("Excel parsing failed")
+
+        monkeypatch.setattr(pd, "read_excel", mock_read_excel)
+
+        with pytest.raises(ParserError, match="파일을 읽는 중 오류가 발생했습니다"):
+            parser.parse(str(excel_path))
+
+    def test_parse_error_chains_original_exception(
+        self, parser: ReviewParser, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """
+        ParserError가 원본 예외를 __cause__로 보존하는지(exception chaining) 검증한다.
+        """
+        csv_path = tmp_path / "reviews.csv"
+        csv_path.write_text("dummy")
+
+        original_error = RuntimeError("original error message")
+
+        def mock_read_csv(*args, **kwargs):
+            raise original_error
+
+        monkeypatch.setattr(pd, "read_csv", mock_read_csv)
+
+        with pytest.raises(ParserError) as exc_info:
+            parser.parse(str(csv_path))
+
+        assert exc_info.value.__cause__ is original_error

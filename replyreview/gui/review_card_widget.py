@@ -98,8 +98,9 @@ class ReviewCardWidget(QFrame):
         self._restore_button()
 
     @Slot(str)
-    def _on_reply_error(self, _message: str) -> None:
-        self._error_label.setText(_ERROR_GENERAL)
+    def _on_reply_error(self, message: str) -> None:
+        cause = f"\n오류: {message}" if message else ""
+        self._error_label.setText(f"{_ERROR_GENERAL}{cause}")
         self._error_label.show()
         self._restore_button()
 

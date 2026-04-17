@@ -92,10 +92,11 @@ class TestReviewCardWidget:
     def test_error_label_shown_on_general_error(
         self, qtbot: QtBot, review: ReviewData
     ) -> None:
-        """일반 오류 발생 시 일반 오류 메시지 레이블이 표시되는지 검증한다."""
+        """일반 오류 발생 시 오류 원인을 포함한 메시지 레이블이 표시되는지 검증한다."""
+        error_msg = "network error"
         error_card = ReviewCardWidget(
             review=review,
-            ai_client=FakeAIClient(raise_error=RuntimeError("network error")),
+            ai_client=FakeAIClient(raise_error=RuntimeError(error_msg)),
         )
         qtbot.addWidget(error_card)
         error_card.show()
@@ -103,7 +104,9 @@ class TestReviewCardWidget:
         qtbot.mouseClick(error_card._reply_button, Qt.MouseButton.LeftButton)
         qtbot.waitUntil(lambda: error_card._error_label.isVisible(), timeout=3000)
 
-        assert error_card._error_label.text() == _ERROR_GENERAL
+        label_text = error_card._error_label.text()
+        assert _ERROR_GENERAL in label_text
+        assert error_msg in label_text
 
     def test_error_label_shows_auth_message_on_auth_error(
         self, qtbot: QtBot, review: ReviewData

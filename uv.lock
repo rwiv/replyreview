@@ -887,12 +887,12 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "openpyxl" },
     { name = "pandas" },
-    { name = "pyinstaller" },
     { name = "pyside6" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "pyinstaller" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -907,12 +907,12 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.3.35" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.3.3" },
-    { name = "pyinstaller", specifier = ">=6.19.0" },
     { name = "pyside6", specifier = ">=6.10.3" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "pyinstaller", specifier = ">=6.19.0" },
     { name = "pyright", specifier = ">=1.1.408" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", specifier = ">=1.2.0" },

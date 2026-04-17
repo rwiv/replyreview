@@ -1,8 +1,17 @@
 import json
+import sys
 from pathlib import Path
 
 # config.json이 없거나 형식이 잘못된 경우 적용되는 기본 설정값.
 DEFAULT_CONFIG: dict[str, str] = {"openai_api_key": ""}
+
+
+def find_project_root() -> Path:
+    current_path = Path(__file__).resolve()
+    for parent in current_path.parents:
+        if (parent / ".git").exists():
+            return parent
+    return current_path.parent
 
 
 class ConfigManager:
@@ -17,8 +26,13 @@ class ConfigManager:
         테스트 시 tmp_path로 초기화된 경로를 주입하여 실제 파일과 격리할 수 있다.
         """
         if config_path is None:
-            # 런타임에 프로젝트 루트 기준으로 config.json 경로를 결정한다.
-            config_path = Path(__file__).parent.parent.parent / "config.json"
+            if getattr(sys, "frozen", False):
+                # PyInstaller 번들 환경: 실행 파일이 위치한 디렉토리 기준
+                base_path = Path(sys.executable).parent
+            else:
+                # 일반 Python 실행 환경: 프로젝트 루트 기준
+                base_path = find_project_root()
+            config_path = base_path / "config.json"
         self._config_path = config_path
 
     def load(self) -> dict[str, str]:

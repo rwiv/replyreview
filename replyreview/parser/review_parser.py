@@ -30,7 +30,10 @@ class ReviewParser:
         if ext not in SUPPORTED_EXTENSIONS:
             raise ParserError(f"지원하지 않는 파일 형식입니다: {ext}")
 
-        df = pd.read_csv(file_path) if ext == ".csv" else pd.read_excel(file_path)
+        try:
+            df = pd.read_csv(file_path) if ext == ".csv" else pd.read_excel(file_path)
+        except Exception as e:
+            raise ParserError(f"파일을 읽는 중 오류가 발생했습니다: {e}") from e
 
         missing = [col for col in COLUMN_MAP if col not in df.columns]
         if missing:
