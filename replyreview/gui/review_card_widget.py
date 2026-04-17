@@ -1,7 +1,5 @@
 """리뷰 카드 위젯."""
 
-from typing import Any
-
 from PySide6.QtCore import QThreadPool, QTimer, Slot
 from PySide6.QtWidgets import (
     QApplication,
@@ -34,7 +32,7 @@ class ReviewCardWidget(QFrame):
         super().__init__(parent)
         self._review = review
         self._ai_client = ai_client
-        self._worker: Any = None
+        self._worker: ReplyWorker | None = None
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -100,7 +98,7 @@ class ReviewCardWidget(QFrame):
         self._restore_button()
 
     @Slot(str)
-    def _on_reply_error(self, message: str) -> None:
+    def _on_reply_error(self, _message: str) -> None:
         self._error_label.setText(_ERROR_GENERAL)
         self._error_label.show()
         self._restore_button()
@@ -109,10 +107,10 @@ class ReviewCardWidget(QFrame):
     def _on_copy_clicked(self) -> None:
         QApplication.clipboard().setText(self._reply_area.toPlainText())
         self._copy_button.setText(_BUTTON_TEXT_COPIED)
-        QTimer.singleShot(
-            _COPY_FEEDBACK_DURATION_MS,
-            lambda: self._copy_button.setText(_BUTTON_TEXT_COPY),
-        )
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(lambda: self._copy_button.setText(_BUTTON_TEXT_COPY))
+        timer.start(_COPY_FEEDBACK_DURATION_MS)
 
     def _restore_button(self) -> None:
         self._reply_button.setEnabled(True)

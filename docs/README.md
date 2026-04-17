@@ -53,6 +53,7 @@ AI 에이전트 및 개발자가 로컬 환경에서 자주 사용하는 필수 
 - [config](../replyreview/config/README.md): 로컬 설정 파일(`config.json`) I/O를 캡슐화하며, 파일 부재나 오류 시 기본값으로 자동 복구하는 설정 관리 로직 제공
 - [gui](../replyreview/gui/README.md): PySide6 기반의 Presentation Layer로, 위젯 렌더링, 레이아웃 배치 및 사용자 이벤트 처리 담당
 - [parser](../replyreview/parser/README.md): CSV/Excel 파일을 읽어 도메인 모델(`ReviewData`)로 변환하며, 파일 포맷 추상화 및 파싱 예외 처리 담당
+- [ai](../replyreview/ai/README.md): `AIClient` ABC 기반으로 OpenAI 의존성을 추상화하며, `QRunnable` 기반 비동기 워커로 GUI 프리징 없이 답글 생성을 처리
 
 ## 5. 구현 지침
 

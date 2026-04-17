@@ -32,6 +32,7 @@ def card(qtbot: QtBot, review: ReviewData) -> ReviewCardWidget:
     """기본 FakeAIClient로 초기화된 ReviewCardWidget fixture."""
     widget = ReviewCardWidget(review=review, ai_client=FakeAIClient())
     qtbot.addWidget(widget)
+    widget.show()
     return widget
 
 
@@ -97,6 +98,7 @@ class TestReviewCardWidget:
             ai_client=FakeAIClient(raise_error=RuntimeError("network error")),
         )
         qtbot.addWidget(error_card)
+        error_card.show()
 
         qtbot.mouseClick(error_card._reply_button, Qt.MouseButton.LeftButton)
         qtbot.waitUntil(lambda: error_card._error_label.isVisible(), timeout=3000)
@@ -112,6 +114,7 @@ class TestReviewCardWidget:
             ai_client=FakeAIClient(raise_error=AIAuthError("invalid key")),
         )
         qtbot.addWidget(auth_card)
+        auth_card.show()
 
         qtbot.mouseClick(auth_card._reply_button, Qt.MouseButton.LeftButton)
         qtbot.waitUntil(lambda: auth_card._error_label.isVisible(), timeout=3000)
@@ -127,6 +130,7 @@ class TestReviewCardWidget:
             ai_client=FakeAIClient(raise_error=RuntimeError("error")),
         )
         qtbot.addWidget(error_card)
+        error_card.show()
 
         qtbot.mouseClick(error_card._reply_button, Qt.MouseButton.LeftButton)
         qtbot.waitUntil(lambda: error_card._reply_button.isEnabled(), timeout=3000)

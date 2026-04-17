@@ -1,10 +1,10 @@
 """LangChain 기반 OpenAI 클라이언트 구현."""
 
-
 import openai
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
 
 from replyreview.ai.client import AIAuthError, AIClient
 from replyreview.models import ReviewData
@@ -31,12 +31,11 @@ class OpenAIClient(AIClient):
         prompt = ChatPromptTemplate.from_messages(
             [("system", _SYSTEM_MESSAGE), ("human", _HUMAN_TEMPLATE)]
         )
-        # api_key is passed as str; ChatOpenAI will accept it at runtime
         self._chain = (
             prompt
-            | ChatOpenAI(model="gpt-4o-mini", api_key=api_key)
+            | ChatOpenAI(model="gpt-4o-mini", api_key=SecretStr(api_key))
             | StrOutputParser()
-        )  # type: ignore[arg-type]
+        )
 
     def generate_reply(self, review: ReviewData) -> str:
         try:
