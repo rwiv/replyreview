@@ -1,5 +1,3 @@
-"""FakeAIClient의 동작을 검증하는 테스트."""
-
 import pytest
 
 from replyreview.ai.client import AIAuthError

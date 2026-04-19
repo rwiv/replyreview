@@ -1,4 +1,4 @@
-# 기술 명세서 (Technical Specification)
+# Technical Specification
 
 본 문서는 '네이버 스마트스토어 리뷰 AI 답글 생성기'의 소프트웨어 아키텍처, 기술 스택, 데이터 흐름 및 핵심 모듈의 구현 전략을 정의합니다.
 
@@ -18,41 +18,30 @@
 - **AI 프레임워크**: `langchain`, `langchain-openai` (LLM 오케스트레이션 및 OpenAI 연동)
 - **빌드 및 패키징**: `PyInstaller` (단일 실행 파일 생성)
 
-## 3. 데이터 모델 및 파싱 명세
-
-### 3.1. 파일 구조 (입력 데이터)
+## 3. 입력 데이터 파일 구조
 
 사용자가 업로드하는 파일(CSV 또는 엑셀)은 반드시 다음 4개의 논리적 컬럼을 포함해야 합니다. (헤더 이름은 유연하게 처리하거나 엄격히 지정할 수 있음)
+
 
 | 상품명 (Product Name) | 고객명 (Customer Name) | 별점 (Rating) | 리뷰 내용 (Review Content) |
 | :--- | :--- | :--- | :--- |
 | 에어팟 프로 케이스 | 김땡땡 | 5 | 배송이 빠르고 상품이 너무 예뻐요! |
 
 
-### 3.2. 내부 데이터 클래스 (Data Class)
+## 4. 설정 관리 (`config.json`)
 
-파싱된 데이터는 GUI 위젯으로 전달하기 전에 아래와 같은 불변 데이터 객체로 매핑됩니다.
+OpenAI API 키 저장을 위해 프로젝트 루트(실행 파일 경로 기준)에 `config.json`을 생성 및 관리합니다. LangChain의 `ChatOpenAI` 객체 생성 시 이 키를 주입합니다.
 
-```python
-from dataclasses import dataclass
-
-@dataclass(frozen=True)
-class ReviewData:
-    product_name: str
-    customer_name: str
-    rating: int      # 1~5 정수형 권장
-    content: str
+```json
+{
+  "openai_api_key": "sk-..."
+}
 ```
 
-#### 구현
+- 파이썬 내장 `json` 모듈을 사용하여 읽기/쓰기를 수행합니다.
+- 예외 처리: 파일이 존재하지 않거나 형식이 깨진 경우 기본값을 세팅하여 새로 생성합니다.
 
-- **`replyreview/models.py`**: `ReviewData` frozen dataclass 정의. GUI와 파서 계층 모두에서 참조하는 공유 도메인 모델입니다.
-- **`replyreview/parser/review_parser.py`**: `ReviewParser` 클래스와 `ParserError` 예외. 파일을 읽어 `ReviewData` 리스트로 변환합니다.
-- **`replyreview/parser/README.md`**: parser 모듈 명세 및 사용 가이드
-
-## 4. 핵심 구현 전략
-
-### 4.1. 비동기 통신 처리 (QThread 기반)
+## 5. 비동기 통신 처리 (QThread 기반)
 
 PySide6 GUI 스레드에서 외부 API 통신과 같은 I/O 바운드 작업을 직접 수행하면 화면이 멈추는 프리징(Freezing) 현상이 발생합니다. 이를 방지하기 위해 PySide의 `QThread`와 시그널/슬롯(Signals and Slots) 메커니즘을 사용합니다.
 
@@ -73,103 +62,20 @@ sequenceDiagram
     CardWidget->>CardWidget: "생성 중..." 버튼 활성화 복구
 ```
 
-### 4.2. AI 클라이언트 추상화 및 테스트 전략
+## 6. LangChain 프롬프트 엔지니어링
 
-외부 AI 서비스(OpenAI)와의 의존성을 분리하고 테스트 용이성을 확보하기 위해, **Abstract Base Class(ABC)**를 기반으로 클라이언트를 추상화합니다.
-
--   **Interface (`AIClient` ABC)**: 답글 생성을 위한 추상 메서드 `generate_reply`를 정의합니다.
--   **Implementation (`OpenAIClient`)**: 실제 LangChain과 OpenAI API를 사용하여 답글을 생성합니다.
--   **Fake Client (`FakeAIClient`)**: 테스트 코드에서 사용하며, 네트워크 호출 없이 미리 정의된 가짜(Fake) 응답을 즉시 반환합니다.
-
-### 4.3. LangChain 프롬프트 엔지니어링
-
-- **System Message**: "당신은 친절하고 전문적인 쇼핑몰 고객센터 직원입니다. 고객의 리뷰에 공감하며 예의 바르게 답변해야 합니다. **모든 답변은 반드시 한국어로만 작성하십시오.**"
-- **Human Message Template**: 
-  ```text
-  고객명: {customer_name}
-  구매상품: {product_name}
-  별점: {rating}/5
-  리뷰 내용: {content}
-  
-  위 리뷰에 대한 적절한 답글을 작성해 주세요.
-  ```
-
-### 4.3. 설정 관리 (`config.json`)
-
-OpenAI API 키 저장을 위해 프로젝트 루트(실행 파일 경로 기준)에 `config.json`을 생성 및 관리합니다. LangChain의 `ChatOpenAI` 객체 생성 시 이 키를 주입합니다.
-
-```json
-{
-  "openai_api_key": "sk-..."
-}
+**System Message:**
+```text
+"당신은 친절하고 전문적인 쇼핑몰 고객센터 직원입니다. 고객의 리뷰에 공감하며 예의 바르게 답변해야 합니다. **모든 답변은 반드시 한국어로만 작성하십시오.**"
 ```
 
-#### 구현
+**Human Message Template:**
+```text
+고객명: {customer_name}
+구매상품: {product_name}
+별점: {rating}/5
+리뷰 내용: {content}
 
-- **`replyreview/config/config_manager.py`**: `ConfigManager` 클래스는 `config.json` 읽기/쓰기를 전담합니다.
-  - 파일 부재 또는 JSON 파싱 오류 시 기본값(`{"openai_api_key": ""}`)으로 자동 복구
-  - `load()`, `save()`, `get_api_key()`, `set_api_key()` 메서드 제공
-- **`replyreview/config/README.md`**: config 모듈 명세 및 사용 가이드
-
-#### 특징
-
-- 파이썬 내장 `json` 모듈을 사용하여 읽기/쓰기를 수행합니다.
-- 예외 처리: 파일이 존재하지 않거나 형식이 깨진 경우 기본값을 세팅하여 새로 생성합니다.
-- 다른 모듈은 `ConfigManager`를 통해서만 설정에 접근하며, 파일 경로나 JSON 포맷을 직접 다루지 않습니다.
-
-### 4.4. AI 클라이언트 추상화 및 비동기 처리
-
-#### AI 클라이언트 인터페이스
-
-외부 AI 서비스 의존성을 분리하고 테스트 용이성을 확보하기 위해 Abstract Base Class(ABC)를 기반으로 클라이언트를 추상화합니다.
-
-- **`replyreview/ai/client.py`**: `AIClient` ABC와 `AIAuthError` 정의
-  - `AIClient`: `generate_reply(review: ReviewData) -> str` 추상 메서드 정의
-  - `AIAuthError`: OpenAI 인증 실패 오류로, 일반 네트워크 오류와 구별
-- **`replyreview/ai/openai_client.py`**: `OpenAIClient` 구현
-  - LangChain `ChatOpenAI`를 사용하여 실제 답글 생성
-  - 생성자에서 `api_key: str` 주입받아 `ChatPromptTemplate` 체인 초기화
-  - `openai.AuthenticationError` 발생 시 `AIAuthError`로 변환
-- **`tests/fakes.py`**: `FakeAIClient` 테스트 전용 구현
-  - 네트워크 호출 없이 고정 텍스트 반환
-  - `raise_error` 옵션으로 오류 시나리오 시뮬레이션
-  - 프로덕션 패키지에 포함되지 않음 (PyInstaller 제외)
-
-#### 비동기 워커
-
-GUI 프리징 없이 AI 응답을 기다리기 위해 PySide6의 `QRunnable` 및 `QThreadPool`을 활용합니다.
-
-- **`replyreview/ai/worker.py`**: 비동기 작업 인프라
-  - `WorkerSignals(QObject)`: 워커가 발행하는 신호 컨테이너
-    - `finished(str)`: 성공 시, 생성된 답글 텍스트 전달
-    - `auth_error()`: API 키 인증 실패 시 (파라미터 없음)
-    - `error(str)`: 기타 예외 발생 시, 오류 메시지 전달
-  - `ReplyWorker(QRunnable)`: 백그라운드 스레드에서 `AIClient.generate_reply` 호출
-    - `AIAuthError` 발생 시 `auth_error` 신호 발행
-    - 그 외 예외 시 `error` 신호 발행
-    - 신호-슬롯 메커니즘으로 메인 스레드 UI 업데이트
-
-#### ReviewCardWidget 비동기 통합
-
-- **`replyreview/gui/review_card_widget.py`**: 답글 생성 UI 관리
-  - 생성자에 `ai_client: AIClient` 파라미터 추가
-  - `_on_generate_clicked`: 워커 생성 후 `QThreadPool.globalInstance()`에 제출
-  - `_on_reply_finished(text)`: 답글 텍스트 표시 및 복사 버튼 노출
-  - `_on_reply_auth_error()`: API 키 오류 메시지 빨간색으로 표시
-  - `_on_reply_error(message)`: 일반 오류 메시지 빨간색으로 표시
-
-### 4.5. 클립보드 제어
-
-PySide6의 `QApplication.clipboard()` 객체를 활용하여 데스크톱 시스템 클립보드에 접근합니다.
-
-```python
-clipboard = QApplication.clipboard()
-clipboard.setText(generated_reply_text)
+위 리뷰에 대한 적절한 답글을 작성해 주세요.
 ```
-
-## 5. 빌드 및 배포 전략 (PyInstaller)
-
-- 앱 외주 결과물(포트폴리오) 성격에 맞게, 코드를 모르는 사용자도 바로 실행할 수 있도록 단일 디렉토리 또는 단일 실행 파일 형태로 빌드합니다.
-- 콘솔 윈도우가 뜨지 않도록 `--windowed` 또는 `--noconsole` 옵션을 필수로 적용합니다.
-- `pandas` 등 용량이 큰 라이브러리가 포함되므로 빌드 최적화가 필요할 수 있습니다. (불필요한 모듈 제외)
 

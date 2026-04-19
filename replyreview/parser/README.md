@@ -1,6 +1,6 @@
 # Parser Module
 
-## 모듈 역할
+## 1. 모듈 개요
 
 `parser` 모듈은 **Business Logic Layer**로서 CSV/Excel 파일 I/O와 도메인 모델 변환을 캡슐화합니다. 이 모듈의 핵심 설계 원칙:
 
@@ -10,61 +10,37 @@
 
 이를 통해 파싱 로직을 한곳에 집중시키고, GUI와 데이터 처리를 명확히 분리합니다.
 
-## 핵심 컴포넌트
+## 2. 관련 문서
+
+- `docs/tech-spec.md` - 3절: 데이터 모델 및 파싱 명세
+- `replyreview/models.py` - `ReviewData` 도메인 모델 정의
+
+## 3. 의존성
+
+- **`pandas`**: CSV/Excel 파일 읽기 및 DataFrame 처리
+- **`openpyxl`**: Excel 파일 처리 (pandas가 내부적으로 사용)
+- **`replyreview.models.ReviewData`**: 도메인 모델
+
+## 4. 핵심 컴포넌트
 
 ### ReviewParser
 
-`ReviewParser` 클래스는 CSV/Excel 파일 파싱의 유일한 진입점입니다.
+`ReviewParser`는 CSV/Excel 파일 파싱의 유일한 진입점입니다. (`replyreview/parser/review_parser.py`)
 
-#### 공개 메서드
-
-##### parse(file_path: str) -> list[ReviewData]
-
-```python
-def parse(self, file_path: str) -> list[ReviewData]:
-    """
-    주어진 파일 경로의 CSV 또는 Excel 파일을 파싱하여 ReviewData 리스트를 반환한다.
-    지원하지 않는 확장자 또는 필수 컬럼 누락 시 ParserError를 raise한다.
-    """
-```
-
-- 파일 확장자를 검사하여 지원하지 않으면 즉시 `ParserError`를 raise합니다 (early exit).
-- `.csv` 파일은 `pd.read_csv`, `.xlsx` 파일은 `pd.read_excel`로 읽습니다.
-- 필수 컬럼(`상품명`, `고객명`, `별점`, `리뷰 내용`) 누락 시 `ParserError`를 raise합니다.
-- 각 행을 `ReviewData` 도메인 객체로 변환합니다.
-
-**예시:**
-
-```python
-parser = ReviewParser()
-reviews = parser.parse("/path/to/reviews.csv")
-for review in reviews:
-    print(review.product_name, review.rating)
-```
+- 파일 확장자를 검사하여 지원하지 않는 형식이면 즉시 `ParserError`를 raise합니다.
+- `.csv`와 `.xlsx` 파일을 읽어 필수 컬럼(`상품명`, `고객명`, `별점`, `리뷰 내용`) 유무를 검증한 뒤, 각 행을 `ReviewData` 도메인 객체로 변환하여 목록으로 반환합니다.
 
 ### ParserError
 
-`ParserError`는 파싱 실패 시 raise되는 커스텀 예외입니다.
+`ParserError`는 파싱 실패 시 raise되는 커스텀 예외입니다. (`replyreview/parser/review_parser.py`)
 
-#### Raise 조건
+- 지원하지 않는 파일 확장자이거나 필수 컬럼이 누락된 경우에 발생합니다.
+- GUI 계층에서 이 예외를 캐치하여 사용자에게 구체적인 오류 메시지를 표시합니다.
 
-- **지원하지 않는 확장자**: `.csv`, `.xlsx` 이외의 파일 확장자
-  - 예: "지원하지 않는 파일 형식입니다: .txt"
-- **필수 컬럼 누락**: 요구되는 컬럼 중 하나 이상이 DataFrame에 없음
-  - 예: "필수 컬럼이 누락되었습니다: ['별점', '리뷰 내용']"
-
-**예시:**
-
-```python
-try:
-    reviews = parser.parse("/path/to/invalid.txt")
-except ParserError as e:
-    print(f"파싱 오류: {e}")
-```
-
-## 지원 컬럼 매핑
+## 5. 지원 컬럼 매핑
 
 CSV/Excel 파일의 컬럼명과 `ReviewData` 필드명의 매핑입니다.
+
 
 | CSV/Excel 컬럼 | ReviewData 필드 | 타입 | 설명 |
 | :--- | :--- | :--- | :--- |
@@ -72,6 +48,7 @@ CSV/Excel 파일의 컬럼명과 `ReviewData` 필드명의 매핑입니다.
 | 고객명 | `customer_name` | `str` | 리뷰를 작성한 고객명 |
 | 별점 | `rating` | `int` | 별점 (1~5) |
 | 리뷰 내용 | `content` | `str` | 리뷰의 본문 내용 |
+
 
 ### 예시 CSV
 
@@ -81,11 +58,11 @@ CSV/Excel 파일의 컬럼명과 `ReviewData` 필드명의 매핑입니다.
 맨투맨,이순신,4,사이즈가 딱 맞고 편해요.
 ```
 
-## 테스트
+## 6. 테스트
 
 ### 테스트 파일
 
-테스트는 `tests/parser/test_review_parser.py`에 작성됩니다.
+- `tests/parser/test_review_parser.py`: `ReviewParser` 동작 검증
 
 ### 테스트 전략
 
@@ -99,19 +76,3 @@ CSV/Excel 파일의 컬럼명과 `ReviewData` 필드명의 매핑입니다.
   - 필수 컬럼 누락 시 `ParserError` 발생
   - 여러 행 파싱
 
-### 실행
-
-```bash
-uv run pytest tests/parser/test_review_parser.py -v
-```
-
-## 의존성
-
-- **`pandas`**: CSV/Excel 파일 읽기 및 DataFrame 처리
-- **`openpyxl`**: Excel 파일 처리 (pandas가 내부적으로 사용)
-- **`replyreview.models.ReviewData`**: 도메인 모델
-
-## 관련 문서
-
-- `docs/tech-spec.md` - 3절: 데이터 모델 및 파싱 명세
-- `replyreview/models.py` - `ReviewData` 도메인 모델 정의

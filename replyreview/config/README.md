@@ -1,6 +1,6 @@
 # Config Module
 
-## 모듈 역할
+## 1. 모듈 개요
 
 `config` 모듈은 **Data & Config Layer**로서 ReplyReview 애플리케이션의 로컬 설정 파일(`config.json`) I/O를 캡슐화합니다.
 
@@ -11,71 +11,22 @@
 
 이를 통해 설정 관리의 복잡성을 한곳(`ConfigManager`)에 집중시키고, GUI 및 기타 모듈들은 `ConfigManager` 인터페이스만 의존하도록 설계합니다.
 
-## 핵심 컴포넌트
+## 2. 관련 문서
+
+- `docs/tech-spec.md` - 4.3절: 설정 관리 시스템 명세
+- `replyreview/gui/README.md` - GUI 모듈에서 ConfigManager 사용 방식
+
+## 3. 핵심 컴포넌트
 
 ### ConfigManager
 
-`ConfigManager` 클래스는 `config.json` 파일 I/O의 유일한 진입점입니다.
+`ConfigManager`는 `config.json` 파일 I/O의 유일한 진입점입니다. (`replyreview/config/config_manager.py`)
 
-#### 생성자
+- 설정 파일 경로를 생성자에서 주입받아 테스트 환경에서 실제 파일과 격리할 수 있습니다.
+- `load`로 설정 딕셔너리를 읽고 `save`로 저장하며, `get_api_key` / `set_api_key`로 OpenAI API 키를 직접 조회·저장하는 편의 메서드를 제공합니다.
+- 파일 부재나 JSON 파싱 오류 발생 시 예외를 전파하지 않고 기본값(`DEFAULT_CONFIG`)으로 자동 복구하는 것이 핵심 설계 원칙입니다.
 
-```python
-def __init__(self, config_path: Path | None = None) -> None:
-    """
-    ConfigManager를 초기화합니다.
-
-    @param config_path: config.json 파일의 경로. None인 경우 프로젝트 루트 기준의 기본 경로로 설정됩니다.
-    """
-```
-
-- `config_path=None`일 경우 프로젝트 루트에 있는 `config.json`을 사용합니다.
-- 테스트 시에는 `config_path`에 임시 경로(`tmp_path`)를 주입하여 실제 파일과 격리할 수 있습니다.
-
-#### 공개 메서드
-
-##### load() -> dict[str, str]
-
-```python
-def load(self) -> dict[str, str]:
-    """config.json 파일을 읽어 설정 딕셔너리를 반환합니다."""
-```
-
-- 파일이 존재하면 JSON을 파싱하여 반환합니다.
-- `FileNotFoundError` 발생 시 기본값(`DEFAULT_CONFIG`)을 반환합니다.
-- `json.JSONDecodeError` 발생 시 기본값을 반환합니다.
-- **오류를 무시하지 않고 명확한 기본값으로 복구**하는 것이 설계 원칙입니다.
-
-##### save(data: dict[str, str]) -> None
-
-```python
-def save(self, data: dict[str, str]) -> None:
-    """설정 딕셔너리를 config.json 파일에 저장합니다."""
-```
-
-- 주어진 딕셔너리를 `config.json`으로 덮어씁니다.
-- JSON 직렬화 시 들여쓰기(indent=2)와 한글 인코딩(`ensure_ascii=False`)을 적용합니다.
-
-##### get_api_key() -> str
-
-```python
-def get_api_key(self) -> str:
-    """저장된 OpenAI API 키를 반환합니다."""
-```
-
-- `load().get("openai_api_key", "")`로 구현됩니다.
-- 키가 없으면 빈 문자열을 반환합니다.
-
-##### set_api_key(key: str) -> None
-
-```python
-def set_api_key(self, key: str) -> None:
-    """OpenAI API 키를 저장합니다."""
-```
-
-- 현재 설정을 로드하고 `openai_api_key` 필드를 업데이트한 후 저장합니다.
-- 기존 다른 설정값은 유지됩니다.
-
-## config.json 스키마
+## 4. config.json 스키마
 
 ### 파일 위치
 
@@ -109,7 +60,7 @@ replyreview/
 }
 ```
 
-## 오류 복구 정책
+## 5. 오류 복구 정책
 
 ### FileNotFoundError
 
@@ -130,39 +81,11 @@ DEFAULT_CONFIG = {"openai_api_key": ""}
 
 **결과**: 마찬가지로 앱이 기본값으로 동작하며, 잘못된 파일은 다음 저장 시 올바른 형식으로 덮어씌워집니다.
 
-## 사용 예시
-
-### MainWindow에서 사용
-
-```python
-from replyreview.config.config_manager import ConfigManager
-
-class MainWindow:
-    def __init__(self):
-        self._config_manager = ConfigManager()
-        # API 키 로드 (앱 시작 시)
-        api_key = self._config_manager.get_api_key()
-```
-
-### SettingsDialog에서 사용
-
-```python
-class SettingsDialog:
-    def __init__(self, config_manager: ConfigManager):
-        self._config_manager = config_manager
-        # 기존 API 키 로드
-        existing_key = self._config_manager.get_api_key()
-        
-    def _save_api_key(self):
-        # 사용자 입력 저장
-        self._config_manager.set_api_key(user_input)
-```
-
-## 테스트
+## 6. 테스트
 
 ### 테스트 파일
 
-테스트는 `tests/config/test_config_manager.py`에 작성됩니다.
+- `tests/config/test_config_manager.py`: `ConfigManager` 동작 검증
 
 ### 테스트 전략
 
@@ -173,13 +96,3 @@ class SettingsDialog:
   - 잘못된 JSON 형식 시 복구 검증
   - 저장/로드 순환 검증
 
-### 실행
-
-```bash
-uv run pytest tests/config/test_config_manager.py -v
-```
-
-## 관련 문서
-
-- `docs/tech-spec.md` - 4.3절: 설정 관리 시스템 명세
-- `replyreview/gui/README.md` - GUI 모듈에서 ConfigManager 사용 방식
