@@ -12,7 +12,9 @@
 
 ## 2. Key Features
 
-<img src="https://github.com/rwiv/replyreview/raw/main/assets/screenshot.png">
+<p align="center">
+  <img src="https://github.com/rwiv/replyreview/raw/main/assets/screenshot.png" width="800">
+</p>
 
 - **단일 파일 선택 지원**: 리뷰 데이터가 담긴 CSV 또는 Excel 파일을 선택하여 손쉽게 데이터를 로드할 수 있습니다.
 - **카드 리스트 뷰 UI**: 일반적인 표 형태가 아닌, 모바일/웹 피드와 유사한 현대적이고 세련된 카드 리스트 형태로 리뷰 목록을 렌더링합니다.
@@ -68,4 +70,3 @@ pyinstaller --noconfirm --onedir --windowed --name "ReplyReview" main.py
 - [명세 개요 문서 (프로젝트 개요 및 문서 인덱스)](docs/README.md)
 - [기능 명세서 (기능 및 UI 요구사항)](docs/features.md)
 - [기술 명세서 (아키텍처 및 시스템 요구사항)](docs/tech-spec.md)
-
