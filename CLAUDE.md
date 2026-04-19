@@ -10,5 +10,5 @@
 - python-patterns
 - python-testing
 - pyside-patterns
-- pyinstaller-guidelines
+- pyinstaller-development
 

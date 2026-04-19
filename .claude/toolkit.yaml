@@ -9,4 +9,4 @@ resources:
 
     - techstack-guidelines:python-style-guide
     - techstack-guidelines:pyside-patterns
-    - techstack-guidelines:pyinstaller-guidelines
+    - techstack-guidelines:pyinstaller-development
