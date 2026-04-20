@@ -1,5 +1,3 @@
-"""리뷰 리스트 뷰."""
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget
 

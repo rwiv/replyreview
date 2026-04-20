@@ -1,5 +1,3 @@
-"""ReviewCardWidget 비동기 답글 생성 흐름 테스트."""
-
 import pytest
 from PySide6.QtCore import Qt
 from pytestqt.qtbot import QtBot

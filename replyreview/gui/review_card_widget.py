@@ -1,5 +1,3 @@
-"""리뷰 카드 위젯."""
-
 from PySide6.QtCore import QThreadPool, QTimer, Slot
 from PySide6.QtWidgets import (
     QApplication,

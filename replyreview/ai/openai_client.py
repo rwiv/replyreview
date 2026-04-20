@@ -1,5 +1,3 @@
-"""LangChain 기반 OpenAI 클라이언트 구현."""
-
 import openai
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate

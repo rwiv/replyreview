@@ -1,5 +1,3 @@
-"""비동기 답글 생성 워커."""
-
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
 from replyreview.ai.client import AIAuthError, AIClient

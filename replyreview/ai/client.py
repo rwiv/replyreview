@@ -1,5 +1,3 @@
-"""AI 답글 생성 클라이언트 추상 인터페이스."""
-
 from abc import ABC, abstractmethod
 
 from replyreview.models import ReviewData

@@ -1,5 +1,3 @@
-"""테스트 전용 페이크 구현. 프로덕션 패키지에 포함되지 않음."""
-
 from replyreview.ai.client import AIClient
 from replyreview.models import ReviewData
 
