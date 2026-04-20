@@ -54,9 +54,9 @@ AI 에이전트 및 개발자가 로컬 환경에서 자주 사용하는 필수 
 - [parser](../replyreview/parser/README.md): CSV/Excel 파일을 읽어 도메인 모델(`ReviewData`)로 변환하며, 파일 포맷 추상화 및 파싱 예외 처리 담당
 - [ai](../replyreview/ai/README.md): `AIClient` ABC 기반으로 OpenAI 의존성을 추상화하며, `QRunnable` 기반 비동기 워커로 GUI 프리징 없이 답글 생성을 처리
 
-## 5. 구현 지침
+## 5. 개발 지침
 
-본 프로젝트의 코드를 작성하거나 수정할 때 다음 원칙을 준수해야 합니다.
+본 프로젝트의 개발 과정에서 다음 원칙을 준수해야 합니다.
 
 1. **명세서 기반 구현**: 구현 중 모호한 부분이 있다면 반드시 `docs/features.md` 및 `docs/tech-spec.md`를 우선적으로 확인합니다. 명세서에 정의된 정책을 임의로 변경하지 마십시오.
 2. **비동기 처리**: PySide6 환경에서 외부 API(LangChain)를 호출할 때는 `QThread` 또는 `asyncio` 등을 활용하여 메인 GUI 스레드가 블로킹되지 않도록 구현해야 합니다.
