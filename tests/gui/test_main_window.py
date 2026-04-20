@@ -6,10 +6,10 @@ import pytest
 from PySide6.QtCore import Qt
 from pytestqt.qtbot import QtBot
 
+from replyreview.ai.fake_client import FakeAIClient
 from replyreview.gui.file_load_view import FileLoadView
 from replyreview.gui.main_window import MainWindow
 from replyreview.gui.review_list_view import ReviewListView
-from tests.fakes import FakeAIClient
 
 
 @pytest.fixture

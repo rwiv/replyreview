@@ -1,8 +1,8 @@
 import pytest
 
 from replyreview.ai.client import AIAuthError
+from replyreview.ai.fake_client import FakeAIClient
 from replyreview.models import ReviewData
-from tests.fakes import FakeAIClient
 
 
 @pytest.fixture

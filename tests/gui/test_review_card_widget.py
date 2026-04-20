@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt
 from pytestqt.qtbot import QtBot
 
 from replyreview.ai.client import AIAuthError
+from replyreview.ai.fake_client import FakeAIClient
 from replyreview.gui.review_card_widget import (
     _BUTTON_TEXT_DEFAULT,
     _BUTTON_TEXT_LOADING,
@@ -11,7 +12,6 @@ from replyreview.gui.review_card_widget import (
     ReviewCardWidget,
 )
 from replyreview.models import ReviewData
-from tests.fakes import FakeAIClient
 
 
 @pytest.fixture
