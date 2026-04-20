@@ -38,9 +38,17 @@ OpenAI API 키 인증 실패를 나타내는 커스텀 예외입니다. (`replyr
 - 일반 네트워크 오류(`Exception`)와 인증 오류를 명확히 구분하기 위해 사용합니다.
 - `WorkerSignals.auth_error` 시그널을 통해 GUI로 전달되어 사용자에게 구체적인 오류 피드백을 제공합니다.
 
+### FakeAiClient
+
+테스트 환경에서 과금 및 네트워크 의존성 없이 AI 응답을 시뮬레이션하는 Fake `AIClient` 구현체입니다. (`replyreview/ai/fake_client.py`)
+
+- **목표**: 외부 API 호출 비용을 절감하고, 테스트 실행 속도를 극대화하며, 네트워크 환경에 구애받지 않는 결정론적(Deterministic) 테스트 환경을 구축합니다.
+- **동작 원리**: 실제 OpenAI 서버와 통신하는 대신, 미리 정의된 고정 텍스트(`REPLY_TEMPLATE`)를 즉시 반환합니다.
+- **예외 시뮬레이션**: `raise_error` 파라미터를 통해 인증 실패(`AIAuthError`)나 네트워크 장애 등 다양한 오류 시나리오를 인위적으로 발생시켜 시스템의 예외 처리 로직을 검증할 수 있습니다.
+
 ### OpenAIClient
 
-LangChain `ChatOpenAI`를 사용하는 실제 답글 생성 구현체입니다. (`replyreview/ai/openai_client.py`)
+LangChain `ChatOpenAI`를 사용하는 실제 `AIClient` 구현체입니다. (`replyreview/ai/openai_client.py`)
 
 - API 키를 주입받아 `ChatPromptTemplate` + `ChatOpenAI` + `StrOutputParser` 체인을 구성하고, `generate_reply` 호출 시 LangChain 체인을 실행하여 답글 텍스트를 반환합니다.
 - `openai.AuthenticationError` 발생 시 `AIAuthError`로 변환하여 상위 계층에서 일관되게 처리할 수 있도록 합니다.
@@ -77,30 +85,7 @@ sequenceDiagram
 
 ### 6.2. 테스트 전략
 
-- **Mocking 객체 활용**: 외부 OpenAI API에 의존하지 않도록 `FakeAIClient`를 직접 구현했습니다. 이를 통해 네트워크 지연이나 과금 발생 없이 빠르고 결정론적인(Deterministic) 단위 테스트 환경을 보장합니다.
+- **Mocking 객체 활용**: 외부 OpenAI API에 의존하지 않도록 `FakeAIClient`를 활용합니다. 이를 통해 네트워크 지연이나 과금 발생 없이 빠르고 결정론적인(Deterministic) 단위 테스트 환경을 보장합니다.
 - **수동 1회성 통합 테스트 설계**: 실제 API를 호출하는 `OpenAIClient` 테스트는 과금 및 자동화 파이프라인(CI/CD) 지연을 방지하기 위해 `pytest.mark.skip` 처리했으며, 필요 시에만 `OPENAI_API_KEY` 환경 변수를 주입하여 수동으로 실행합니다.
 - **의존성 주입 및 Fixture 활용**: `pytest`의 `@pytest.fixture`를 적극 활용하여 테스트용 도메인 모델(`ReviewData`)과 `FakeAIClient` 인스턴스를 각 테스트 메서드에 주입하여 코드 중복을 줄이고 테스트 간 격리를 유지합니다.
-- **예외 상황 시뮬레이션 및 검증**: `FakeAIClient`에 `raise_error` 옵션을 두어 `AIAuthError` 같은 인증 실패나 일반 예외 상황을 인위적으로 시뮬레이션하고, `pytest.raises`를 사용해 시스템이 오류를 올바르게 처리하는지 검증합니다.
-
-### 6.3. Mocking 전략
-
-`replyreview/ai/fake_client.py`에 위치하는 `FakeAIClient`를 사용하여 네트워크 의존성 없이 시스템의 비즈니스 로직과 UI 흐름을 검증합니다.
-
-- **전략적 목표**: 외부 API 호출 비용을 절감하고, 테스트 실행 속도를 극대화하며, 네트워크 환경에 구애받지 않는 결정론적(Deterministic) 테스트 환경을 구축합니다.
-- **동작 원리**: 실제 OpenAI 서버와 통신하는 대신, 미리 정의된 고정 텍스트(`REPLY_TEMPLATE`)를 즉시 반환합니다.
-- **예외 시뮬레이션**: `raise_error` 파라미터를 통해 인증 실패(`AIAuthError`)나 네트워크 장애 등 다양한 오류 시나리오를 인위적으로 발생시켜 시스템의 예외 처리 로직을 검증할 수 있습니다.
-
-```python
-from replyreview.ai.client import AIAuthError
-from replyreview.ai.fake_client import FakeAIClient
-
-# 정상 동작 시나리오: 즉시 고정된 답글 반환
-client = FakeAIClient()
-
-# 인증 오류 시나리오: API 키가 유효하지 않은 상황 시뮬레이션
-client = FakeAIClient(raise_error=AIAuthError("invalid key"))
-
-# 일반 시스템 오류 시나리오: 네트워크 단절 등의 상황 시뮬레이션
-client = FakeAIClient(raise_error=RuntimeError("network error"))
-```
 
