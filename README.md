@@ -67,6 +67,6 @@ pyinstaller --noconfirm --onedir --windowed --name "ReplyReview" main.py
 
 프로젝트의 상세 설계 및 기능 정의는 `docs/` 디렉토리에 위치해 있습니다.
 
-- [명세 개요 문서 (프로젝트 개요 및 문서 인덱스)](docs/README.md)
+- [명세 진입 문서 (프로젝트 개요 및 문서 인덱스)](docs/README.md)
 - [기능 명세서 (기능 및 UI 요구사항)](docs/features.md)
 - [기술 명세서 (아키텍처 및 시스템 요구사항)](docs/tech-spec.md)

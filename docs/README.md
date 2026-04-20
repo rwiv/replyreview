@@ -1,4 +1,4 @@
-# Project Specification
+# Specification Entry Point
 
 이 문서는 AI 코딩 에이전트(Claude Code, Gemini CLI 등) 및 프로젝트 참여 개발자가 프로젝트의 전체적인 맥락과 명세서 구조를 파악하기 위한 진입점(Entry point)입니다.
 
