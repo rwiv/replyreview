@@ -38,7 +38,7 @@ OpenAI API 키 인증 실패를 나타내는 커스텀 예외입니다. (`replyr
 - 일반 네트워크 오류(`Exception`)와 인증 오류를 명확히 구분하기 위해 사용합니다.
 - `WorkerSignals.auth_error` 시그널을 통해 GUI로 전달되어 사용자에게 구체적인 오류 피드백을 제공합니다.
 
-### FakeAiClient
+### FakeAIClient
 
 테스트 환경에서 과금 및 네트워크 의존성 없이 AI 응답을 시뮬레이션하는 Fake `AIClient` 구현체입니다. (`replyreview/ai/fake_client.py`)
 
